@@ -1,0 +1,432 @@
+{
+    "name": "Leyendas FC 26",
+    "human_players": [
+        {
+            "name": "Elias"
+        },
+        {
+            "name": "Alvaro"
+        }
+    ],
+    "teams": [
+        {
+            "name": "Rayo Vallecano",
+            "owner": "Elias",
+            "captain": "Zico",
+            "captain_category": "Diamante",
+            "legends": [
+                {
+                    "name": "Zico",
+                    "category": "Diamante",
+                    "position": "Sin definir"
+                },
+                {
+                    "name": "Ibarbo",
+                    "category": "Bronce",
+                    "position": "Sin definir"
+                }
+            ],
+            "option_results": [
+                "Pierde un Atacante",
+                "Fichar jugador equipo 5*",
+                "Tirar Ruleta Bronce"
+            ],
+            "base_changes": [
+                "Fichado: jugador1"
+            ]
+        },
+        {
+            "name": "Lazio",
+            "owner": "Alvaro",
+            "captain": "Cruyff",
+            "captain_category": "Diamante",
+            "legends": [
+                {
+                    "name": "Cruyff",
+                    "category": "Diamante",
+                    "position": "Sin definir"
+                },
+                {
+                    "name": "Quaresma",
+                    "category": "Bronce",
+                    "position": "Sin definir"
+                }
+            ],
+            "option_results": [
+                "Fichar un jugador Normal",
+                "Pierde un Medio",
+                "Tirar Ruleta Bronce"
+            ],
+            "base_changes": [
+                "Fichado: jugador2"
+            ]
+        },
+        {
+            "name": "Newells",
+            "owner": "Elias",
+            "captain": "Ibra",
+            "captain_category": "Diamante",
+            "legends": [
+                {
+                    "name": "Ibra",
+                    "category": "Diamante",
+                    "position": "Sin definir"
+                },
+                {
+                    "name": "Beckham",
+                    "category": "Oro",
+                    "position": "Sin definir"
+                },
+                {
+                    "name": "Park ji Sung",
+                    "category": "Bronce",
+                    "position": "Sin definir"
+                }
+            ],
+            "option_results": [
+                "Tirar Ruleta Oro",
+                "Comodín Plata",
+                "Tirar Ruleta Bronce"
+            ],
+            "base_changes": [
+                "Fichado: jugador3"
+            ]
+        },
+        {
+            "name": "Panatinaikos",
+            "owner": "Alvaro",
+            "captain": "Iniesta",
+            "captain_category": "Diamante",
+            "legends": [
+                {
+                    "name": "Iniesta",
+                    "category": "Diamante",
+                    "position": "Sin definir"
+                },
+                {
+                    "name": "Noor",
+                    "category": "Bronce",
+                    "position": "Sin definir"
+                }
+            ],
+            "option_results": [
+                "Fichar un Def/Portero",
+                "Tirar Ruleta Bronce",
+                "Pierde un jugador Normal"
+            ],
+            "base_changes": [
+                "Fichado: jugador4"
+            ]
+        },
+        {
+            "name": "R.Union ST.-G",
+            "owner": "Elias",
+            "captain": "Maradona",
+            "captain_category": "Diamante",
+            "legends": [
+                {
+                    "name": "Maradona",
+                    "category": "Diamante",
+                    "position": "Sin definir"
+                }
+            ],
+            "option_results": [
+                "Comodín Plata",
+                "Fichar un jugador Normal",
+                "Comodín Plata"
+            ],
+            "base_changes": [
+                "Fichado: jugador5",
+                "Fichado: jugador6",
+                "Fichado: jugador7"
+            ]
+        },
+        {
+            "name": "Como 1907",
+            "owner": "Alvaro",
+            "captain": "Best",
+            "captain_category": "Diamante",
+            "legends": [
+                {
+                    "name": "Best",
+                    "category": "Diamante",
+                    "position": "Sin definir"
+                },
+                {
+                    "name": "Rui costa",
+                    "category": "Plata",
+                    "position": "Sin definir"
+                },
+                {
+                    "name": "J.Campos PT",
+                    "category": "Plata",
+                    "position": "Sin definir"
+                },
+                {
+                    "name": "Schmeichel PT",
+                    "category": "Plata",
+                    "position": "Sin definir"
+                }
+            ],
+            "option_results": [
+                "Tirar Ruleta Plata",
+                "Tirar Ruleta Plata",
+                "Tirar Ruleta Plata"
+            ],
+            "base_changes": []
+        },
+        {
+            "name": "Newcastle UTD",
+            "owner": "Elias",
+            "captain": "Maldini",
+            "captain_category": "Diamante",
+            "legends": [
+                {
+                    "name": "Maldini",
+                    "category": "Diamante",
+                    "position": "Sin definir"
+                },
+                {
+                    "name": "Ronaldo",
+                    "category": "Diamante",
+                    "position": "Sin definir"
+                },
+                {
+                    "name": "I.cordoba",
+                    "category": "Plata",
+                    "position": "Sin definir"
+                }
+            ],
+            "option_results": [
+                "Tirar Ruleta Diamante",
+                "Fichar jugador equipo 5*",
+                "Tirar Ruleta Plata"
+            ],
+            "base_changes": [
+                "Fichado: jugador8"
+            ]
+        },
+        {
+            "name": "PAOK FC",
+            "owner": "Alvaro",
+            "captain": "Beckenbauer",
+            "captain_category": "Diamante",
+            "legends": [
+                {
+                    "name": "Beckenbauer",
+                    "category": "Diamante",
+                    "position": "Sin definir"
+                },
+                {
+                    "name": "Benzema",
+                    "category": "Plata",
+                    "position": "Sin definir"
+                }
+            ],
+            "option_results": [
+                "Tirar Ruleta Plata",
+                "Fichar un Atacante",
+                "Pierde un Atacante"
+            ],
+            "base_changes": [
+                "Fichado: jugador9"
+            ]
+        },
+        {
+            "name": "Shaktar Donestsk",
+            "owner": "Elias",
+            "captain": "Puskas",
+            "captain_category": "Diamante",
+            "legends": [
+                {
+                    "name": "Puskas",
+                    "category": "Diamante",
+                    "position": "Sin definir"
+                }
+            ],
+            "option_results": [
+                "Fichar un Def/Portero",
+                "Fichar un Atacante",
+                "Fichar jugador equipo 5*"
+            ],
+            "base_changes": [
+                "Fichado: jugador10",
+                "Fichado: jugador11",
+                "Fichado: jujgador12"
+            ]
+        },
+        {
+            "name": "RCD Espayol",
+            "owner": "Alvaro",
+            "captain": "Rivaldo",
+            "captain_category": "Diamante",
+            "legends": [
+                {
+                    "name": "Rivaldo",
+                    "category": "Diamante",
+                    "position": "Sin definir"
+                }
+            ],
+            "option_results": [
+                "Pierde un Atacante",
+                "Pierde un Medio",
+                "Pierde un jugador Normal"
+            ],
+            "base_changes": []
+        },
+        {
+            "name": "Parma",
+            "owner": "Elias",
+            "captain": "Cafu",
+            "captain_category": "Diamante",
+            "legends": [
+                {
+                    "name": "Cafu",
+                    "category": "Diamante",
+                    "position": "Sin definir"
+                },
+                {
+                    "name": "Cahill",
+                    "category": "Bronce",
+                    "position": "Sin definir"
+                },
+                {
+                    "name": "Zola",
+                    "category": "Plata",
+                    "position": "Sin definir"
+                }
+            ],
+            "option_results": [
+                "Tirar Ruleta Bronce",
+                "Tirar Ruleta Plata",
+                "Comodín Plata"
+            ],
+            "base_changes": [
+                "Fichado: jjugador13"
+            ]
+        },
+        {
+            "name": "Sparta de Praga",
+            "owner": "Alvaro",
+            "captain": "R.Carlos",
+            "captain_category": "Diamante",
+            "legends": [
+                {
+                    "name": "R.Carlos",
+                    "category": "Diamante",
+                    "position": "Sin definir"
+                }
+            ],
+            "option_results": [
+                "Comodín Oro",
+                "Fichar un jugador Normal",
+                "Comodín Oro"
+            ],
+            "base_changes": [
+                "Fichado: jugador14",
+                "Fichado: jugador15",
+                "Fichado: jugador16"
+            ]
+        },
+        {
+            "name": "LOSC Lille",
+            "owner": "Elias",
+            "captain": "Charlton",
+            "captain_category": "Diamante",
+            "legends": [
+                {
+                    "name": "Charlton",
+                    "category": "Diamante",
+                    "position": "Sin definir"
+                }
+            ],
+            "option_results": [
+                "Comodín Plata",
+                "Fichar un Atacante",
+                "Fichar jugador equipo 5*"
+            ],
+            "base_changes": [
+                "Fichado: jugador 17",
+                "Fichado: jugador18",
+                "Fichado: jugador19"
+            ]
+        },
+        {
+            "name": "Famalicio",
+            "owner": "Alvaro",
+            "captain": "Van basten",
+            "captain_category": "Diamante",
+            "legends": [
+                {
+                    "name": "Van basten",
+                    "category": "Diamante",
+                    "position": "Sin definir"
+                },
+                {
+                    "name": "Lampard",
+                    "category": "Plata",
+                    "position": "Sin definir"
+                }
+            ],
+            "option_results": [
+                "Fichar un Medio",
+                "Comodín Oro",
+                "Tirar Ruleta Plata"
+            ],
+            "base_changes": [
+                "Fichado: jugador 20",
+                "Fichado: jugador21"
+            ]
+        },
+        {
+            "name": "Galatasaray",
+            "owner": "Elias",
+            "captain": "C.Ronaldo",
+            "captain_category": "Diamante",
+            "legends": [
+                {
+                    "name": "C.Ronaldo",
+                    "category": "Diamante",
+                    "position": "Sin definir"
+                }
+            ],
+            "option_results": [
+                "Fichar jugador equipo 4.5*",
+                "Comodín Bronce",
+                "Fichar un Def/Portero"
+            ],
+            "base_changes": [
+                "Fichado: jugador22",
+                "Fichado: jugador23",
+                "Fichado: jugador24"
+            ]
+        },
+        {
+            "name": "Everton",
+            "owner": "Alvaro",
+            "captain": "Del piero",
+            "captain_category": "Diamante",
+            "legends": [
+                {
+                    "name": "Del piero",
+                    "category": "Diamante",
+                    "position": "Sin definir"
+                },
+                {
+                    "name": "Neymar",
+                    "category": "Oro",
+                    "position": "Sin definir"
+                }
+            ],
+            "option_results": [
+                "Fichar un Atacante",
+                "Tirar Ruleta Oro",
+                "Comodín Oro"
+            ],
+            "base_changes": [
+                "Fichado: jugador25",
+                "Fichado: jugador26"
+            ]
+        }
+    ]
+}
