@@ -33,6 +33,20 @@
             ],
             "base_changes": [
                 "Fichado: jugador1"
+            ],
+            "spins": [
+                {
+                    "accion": "Pierde un atacante",
+                    "resultado": "Isi"
+                },
+                {
+                    "accion": "Fichar un jugador equipo 5*",
+                    "resultado": "Mbappé"
+                },
+                {
+                    "accion": "Tirar Ruleta Bronce",
+                    "resultado": "Ibarbo"
+                }
             ]
         },
         {

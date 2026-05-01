@@ -23,7 +23,8 @@ def save_tournament_to_json(tournament, filename="torneo_leyendas.json"):
             "captain_category": team.captain.category if team.captain else None,
             "legends": [],
             "option_results": team.option_results,
-            "base_changes": team.base_changes
+            "base_changes": team.base_changes,
+            "spins": team.spins 
         }
 
         for legend in team.squad:

@@ -21,15 +21,20 @@ class LegendPlayer:
 
 
 class Team:
-    def __init__(self, name, owner):
-        self.name = name
-        self.owner = owner
-        self.squad = []             # leyendas
-        self.captain = None
-        self.option_results = []
-        self.manual_actions = []
-        self.base_changes = []      # fichajes/eliminaciones manuales
+    class Team:
+        def __init__(self, name, owner):
+            self.name = name
+            self.owner = owner
+            self.captain = None
+            self.legends = []
 
+            # ❌ viejo (puedes dejarlo si quieres, pero ya no se usa)
+            self.option_results = []
+            self.base_changes = []
+
+            # ✅ NUEVO (IMPORTANTE)
+            self.spins = []
+    
     def add_legend(self, legend):
         if isinstance(legend, LegendPlayer):
             self.squad.append(legend)

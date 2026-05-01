@@ -70,7 +70,73 @@ def assign_option_spins(tournament, option_roulette, spins_per_team=3):
 
 
 
-def execute_option_results(tournament, diamond_roulette, gold_roulette, silver_roulette, bronze_roulette):
+def execute_option_results(
+    tournament,
+    diamond_roulette,
+    gold_roulette,
+    silver_roulette,
+    bronze_roulette
+):
+    print("\n--- EJECUTANDO RESULTADOS DE RULETA ---")
+
+    for team in tournament.teams:
+        print(f"\nProcesando equipo: {team.name}")
+
+        for option in team.option_results:
+
+            resultado = ""
+
+            # 🎰 RULETAS AUTOMÁTICAS
+            if option == "Tirar Ruleta Diamante":
+                resultado = diamond_roulette.spin()
+
+            elif option == "Tirar Ruleta Oro":
+                resultado = gold_roulette.spin()
+
+            elif option == "Tirar Ruleta Plata":
+                resultado = silver_roulette.spin()
+
+            elif option == "Tirar Ruleta Bronce":
+                resultado = bronze_roulette.spin()
+
+            # 🎮 ACCIONES MANUALES
+            elif option == "Fichar un Atacante":
+                resultado = "Elegir atacante"
+
+            elif option == "Fichar un Medio":
+                resultado = "Elegir medio"
+
+            elif option == "Fichar un Def/Portero":
+                resultado = "Elegir defensa/portero"
+
+            elif option == "Fichar jugador equipo 5*":
+                resultado = "Elegir equipo 5*"
+
+            elif option == "Fichar jugador equipo 4.5*":
+                resultado = "Elegir equipo 4.5*"
+
+            elif option == "Pierde un Atacante":
+                resultado = "Elegir jugador a eliminar"
+
+            elif option == "Pierde un Medio":
+                resultado = "Elegir jugador a eliminar"
+
+            elif option == "Pierde un Def/Portero":
+                resultado = "Elegir jugador a eliminar"
+
+            elif option == "Pierde un jugador Normal":
+                resultado = "Elegir jugador a eliminar"
+
+            else:
+                resultado = "Pendiente"
+
+            # 🔥 CLAVE: GUARDAR TODO COMO SPIN
+            team.spins.append({
+                "accion": option,
+                "resultado": resultado
+            })
+
+            print(f"{option} ➜ {resultado}")
     print("\n--- EJECUTANDO RESULTADOS DE RULETA DE OPCIONES ---")
 
     manual_option_types = [
