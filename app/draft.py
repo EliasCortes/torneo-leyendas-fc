@@ -1,4 +1,4 @@
-from models import Team, LegendPlayer
+from app.models import Team, LegendPlayer
 
 
 def assign_teams_by_turns(tournament, team_roulette, max_teams_per_player=8):

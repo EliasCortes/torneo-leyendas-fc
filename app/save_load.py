@@ -42,7 +42,7 @@ def save_tournament_to_json(tournament, filename="torneo_leyendas.json"):
     print(f"\n💾 Torneo guardado correctamente en '{filename}'")
 
 import json
-from models import Tournament, HumanPlayer, Team, LegendPlayer
+from app.models import Tournament, HumanPlayer, Team, LegendPlayer
 
 
 def load_tournament_from_json(filename="torneo_leyendas.json"):

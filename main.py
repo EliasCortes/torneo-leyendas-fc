@@ -6,16 +6,16 @@ from data import (
     BRONZE_LEGENDS,
     OPTION_ROULETTE
 )
-from roulette import Roulette
-from models import Tournament, HumanPlayer
-from draft import (
+from app.roulette import Roulette
+from app.models import Tournament, HumanPlayer
+from app.draft import (
     assign_teams_by_turns,
     assign_diamond_captains,
     assign_option_spins,
     execute_option_results,
     resolve_manual_actions
 )
-from save_load import save_tournament_to_json, load_tournament_from_json
+from app.save_load import save_tournament_to_json, load_tournament_from_json
 
 
 # =========================

@@ -8,7 +8,7 @@ app = Flask(__name__)
 @app.route("/")
 def home():
     # 📁 Elegir archivo (por defecto el principal)
-    archivo = request.args.get("torneo", "torneo_leyendas.json")
+    archivo = request.args.get("torneo", "data/torneo_leyendas.json")
 
     # 🚫 Seguridad básica
     if not archivo.endswith(".json"):
