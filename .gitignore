@@ -1,6 +1,32 @@
+# Python
 __pycache__/
 *.pyc
-.env
 venv/
-__pycache__/
-*.pyc
+.venv/
+
+# Environment variables
+.env
+.env.*
+
+# Node / JS
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Editor / System files
+.vscode/
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Local utility scripts
+*.bat
+
+# Application databases (Ignore all except the default tracked one)
+data/*.json
+!data/torneo_leyendas.json

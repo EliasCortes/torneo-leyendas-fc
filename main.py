@@ -1,4 +1,4 @@
-from constans import (
+from constants import (
     TOURNAMENT_TEAMS,
     DIAMOND_LEGENDS,
     GOLD_LEGENDS,

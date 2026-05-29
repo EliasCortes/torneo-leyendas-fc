@@ -1,0 +1,224 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Reset and Custom Base Styles */
+body {
+  margin: 0;
+  font-family: 'Inter', 'Outfit', sans-serif;
+  background-color: #030508;
+  color: #f3f4f6;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #05070a;
+}
+::-webkit-scrollbar-thumb {
+  background: #1c2331;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2b354a;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- GLOW EFFECTS & UTILITIES --- */
+.glow-cyan {
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.6), 0 0 20px rgba(0, 240, 255, 0.3);
+}
+
+.glow-gold {
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.border-neon-cyan {
+  border-color: rgba(0, 240, 255, 0.8);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+}
+
+.border-neon-gold {
+  border-color: rgba(255, 215, 0, 0.8);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+}
+
+/* --- ANIMATIONS --- */
+
+@keyframes pulse-neon {
+  0%, 100% {
+    opacity: 1;
+    text-shadow: 0 0 8px rgba(0, 240, 255, 0.6), 0 0 15px rgba(0, 240, 255, 0.3);
+  }
+  50% {
+    opacity: 0.8;
+    text-shadow: 0 0 3px rgba(0, 240, 255, 0.3), 0 0 8px rgba(0, 240, 255, 0.1);
+  }
+}
+
+.pulse-neon-text {
+  animation: pulse-neon 2s infinite ease-in-out;
+}
+
+@keyframes holographic-shine {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Holographic Card Skins */
+.card-hologram-diamond {
+  background: linear-gradient(
+    135deg,
+    #131e2b 0%,
+    #0d3448 25%,
+    #2a1f42 50%,
+    #0b4c5e 75%,
+    #131e2b 100%
+  );
+  background-size: 400% 400%;
+  animation: holographic-shine 8s infinite linear;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-hologram-diamond::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(
+    125deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(0, 240, 255, 0.15) 40%,
+    rgba(255, 255, 255, 0.25) 50%,
+    rgba(170, 59, 255, 0.15) 60%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  background-size: 200% 200%;
+  transform: translate(-100%, -100%) rotate(25deg);
+  transition: all 0.6s ease-out;
+  pointer-events: none;
+}
+
+.card-hologram-diamond:hover::after {
+  transform: translate(100%, 100%) rotate(25deg);
+}
+
+.card-hologram-gold {
+  background: linear-gradient(
+    135deg,
+    #181407 0%,
+    #4a3c10 30%,
+    #7a631d 50%,
+    #4a3c10 70%,
+    #181407 100%
+  );
+  background-size: 400% 400%;
+  animation: holographic-shine 10s infinite linear;
+}
+
+.card-hologram-silver {
+  background: linear-gradient(
+    135deg,
+    #121316 0%,
+    #2c2f38 35%,
+    #4d5360 50%,
+    #2c2f38 65%,
+    #121316 100%
+  );
+  background-size: 400% 400%;
+  animation: holographic-shine 12s infinite linear;
+}
+
+.card-hologram-bronze {
+  background: linear-gradient(
+    135deg,
+    #140d09 0%,
+    #3c2518 35%,
+    #633d26 50%,
+    #3c2518 65%,
+    #140d09 100%
+  );
+  background-size: 400% 400%;
+  animation: holographic-shine 14s infinite linear;
+}
+
+.card-hologram-actual {
+  background: linear-gradient(
+    135deg,
+    #0c0f16 0%,
+    #1e2533 50%,
+    #0c0f16 100%
+  );
+}
+
+/* Card Shape Clip-Path */
+.fut-card-clip {
+  clip-path: polygon(
+    0% 12%,
+    50% 0%,
+    100% 12%,
+    100% 88%,
+    50% 100%,
+    0% 88%
+  );
+}
+
+.fut-card-border-clip {
+  clip-path: polygon(
+    0% 12%,
+    50% 0%,
+    100% 12%,
+    100% 88%,
+    50% 100%,
+    0% 88%
+  );
+}
+
+/* Cinematic text animations */
+@keyframes cinematic-glow {
+  0% {
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.4), 0 0 20px rgba(0, 240, 255, 0.1);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(0, 240, 255, 0.8), 0 0 40px rgba(0, 240, 255, 0.4);
+  }
+  100% {
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.4), 0 0 20px rgba(0, 240, 255, 0.1);
+  }
+}
+
+.cinematic-title {
+  font-family: 'Outfit', sans-serif;
+  animation: cinematic-glow 4s infinite ease-in-out;
+}
+
+/* Spin animation for Roulette */
+@keyframes spin-infinite {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin-slow {
+  animation: spin-infinite 20s infinite linear;
+}
