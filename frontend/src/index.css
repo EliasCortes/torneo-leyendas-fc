@@ -71,6 +71,52 @@ body {
   animation: pulse-neon 2s infinite ease-in-out;
 }
 
+/* Neon ring glow animation for logo */
+@keyframes neon-ring-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 8px rgba(0, 243, 255, 0.6),
+      0 0 20px rgba(0, 243, 255, 0.4),
+      0 0 40px rgba(0, 243, 255, 0.2),
+      0 0 80px rgba(0, 243, 255, 0.1),
+      inset 0 0 15px rgba(0, 243, 255, 0.15);
+    border-color: rgba(0, 243, 255, 0.8);
+  }
+  50% {
+    box-shadow:
+      0 0 4px rgba(0, 243, 255, 0.3),
+      0 0 10px rgba(0, 243, 255, 0.2),
+      0 0 20px rgba(0, 243, 255, 0.1),
+      0 0 40px rgba(0, 243, 255, 0.05),
+      inset 0 0 8px rgba(0, 243, 255, 0.08);
+    border-color: rgba(0, 243, 255, 0.5);
+  }
+}
+
+.logo-neon-ring {
+  border: 2px solid rgba(0, 243, 255, 0.8);
+  animation: neon-ring-pulse 2.5s infinite ease-in-out;
+  position: relative;
+}
+
+.logo-neon-ring::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 243, 255, 0.15);
+  animation: neon-ring-pulse 2.5s infinite ease-in-out 0.3s;
+}
+
+.logo-neon-ring::after {
+  content: '';
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 243, 255, 0.08);
+  animation: neon-ring-pulse 2.5s infinite ease-in-out 0.6s;
+}
+
 @keyframes holographic-shine {
   0% {
     background-position: 0% 50%;

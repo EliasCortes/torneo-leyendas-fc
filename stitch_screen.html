@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Torneo Leyendas - Ultimate Roulette</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;family=Metropolis:ital,wght@0,400;0,600;0,700;1,900&amp;family=Public+Sans:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#00dbe9",
+                    "on-secondary-container": "#590028",
+                    "secondary-fixed-dim": "#ffb1c4",
+                    "on-primary-fixed-variant": "#004f54",
+                    "on-tertiary-fixed-variant": "#554500",
+                    "inverse-on-surface": "#2e3134",
+                    "secondary": "#ffb1c4",
+                    "on-primary-fixed": "#002022",
+                    "tertiary": "#fff5de",
+                    "primary-fixed": "#7df4ff",
+                    "surface-container": "#1d2023",
+                    "surface-container-highest": "#323539",
+                    "surface-container-high": "#282a2e",
+                    "error-container": "#93000a",
+                    "outline": "#849495",
+                    "on-tertiary": "#3b2f00",
+                    "on-background": "#e1e2e7",
+                    "on-primary": "#00363a",
+                    "surface-container-lowest": "#0c0e12",
+                    "primary-container": "#00f0ff",
+                    "on-error-container": "#ffdad6",
+                    "tertiary-fixed-dim": "#eac324",
+                    "inverse-surface": "#e1e2e7",
+                    "on-primary-container": "#006970",
+                    "inverse-primary": "#006970",
+                    "background": "#111417",
+                    "on-secondary-fixed-variant": "#8f0044",
+                    "primary": "#dbfcff",
+                    "on-tertiary-fixed": "#231b00",
+                    "error": "#ffb4ab",
+                    "surface-dim": "#111417",
+                    "outline-variant": "#3b494b",
+                    "surface-container-low": "#191c1f",
+                    "secondary-fixed": "#ffd9e1",
+                    "surface-tint": "#00dbe9",
+                    "on-surface-variant": "#b9cacb",
+                    "on-secondary-fixed": "#3f001a",
+                    "tertiary-fixed": "#ffe179",
+                    "surface-bright": "#37393d",
+                    "tertiary-container": "#fed639",
+                    "on-secondary": "#65002e",
+                    "surface": "#111417",
+                    "on-surface": "#e1e2e7",
+                    "on-tertiary-container": "#715d00",
+                    "on-error": "#690005",
+                    "secondary-container": "#ff4a8d",
+                    "surface-variant": "#323539"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xl": "32px",
+                    "lg": "24px",
+                    "md": "16px",
+                    "xs": "4px",
+                    "sm": "8px",
+                    "margin": "24px",
+                    "unit": "4px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "label-md": ["Public Sans"],
+                    "body-lg": ["Inter"],
+                    "headline-md": ["Metropolis"],
+                    "headline-lg": ["Metropolis"],
+                    "headline-xl": ["Metropolis"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "headline-xl": ["48px", {"lineHeight": "56px", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background: radial-gradient(circle at center, #111417 0%, #0c0e12 100%);
+            overflow-x: hidden;
+        }
+        .cyber-grid {
+            background-image: 
+                linear-gradient(to right, rgba(0, 219, 233, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 219, 233, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .glass-card {
+            background: rgba(55, 57, 61, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(132, 148, 149, 0.2);
+        }
+        .glow-border-primary {
+            box-shadow: 0 0 15px rgba(0, 219, 233, 0.3);
+        }
+        .metallic-text {
+            background: linear-gradient(180deg, #ffffff 0%, #a0a0a0 50%, #ffffff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        @keyframes rotate-wheel {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .anim-rotate {
+            animation: rotate-wheel 20s linear infinite;
+        }
+        .anim-rotate:hover {
+            animation-play-state: paused;
+        }
+        .legend-card-glow {
+            filter: drop-shadow(0 0 8px rgba(234, 195, 36, 0.4));
+        }
+    </style>
+</head>
+<body class="text-on-background font-body-md min-h-screen">
+<div class="fixed inset-0 cyber-grid pointer-events-none"></div>
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-[0_0_20px_rgba(0,219,233,0.1)] flex justify-between items-center px-margin py-md">
+<div class="flex items-center gap-md">
+<img alt="Logo" class="h-10 w-10 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2CXk4rmP6Zc6kgoDWjhoxm1OVkEhJ2GtimM3S5HTaJa2vl7H2qclEMU8oFflo71i8S63tVWm2dgU3P44Zu2pkwTixUgq-pkLu8vWoIBKAheN4GyY9WvE0NkCIfYg2iu4UP1GTtZ4sAGj7x6VIBM9rRojnAVybM7QMYIOOnW7BDdEbREbw5ADQAT5ddA-Iaqb3v0Tsr69wjPzgytdUtDU1JqHzqy6cteMYkVjQB70JOBZbB2ALv7z9Cy_I8gUIxI01y4XU_FnrXsE"/>
+<span class="font-headline-lg text-headline-lg font-black tracking-tighter text-primary-fixed-dim uppercase italic">Torneo Leyendas</span>
+</div>
+<div class="hidden md:flex items-center gap-xl">
+<a class="text-primary-fixed-dim border-b-2 border-primary-fixed-dim pb-1 font-label-md text-label-md" href="#">Torneos</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Clasificación</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Premios</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">Reglas</a>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-surface-container-highest/50 p-sm rounded-full transition-all duration-300">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-surface-container-highest/50 p-sm rounded-full transition-all duration-300">settings</button>
+<div class="h-10 w-10 rounded-full border-2 border-primary-fixed-dim p-0.5 overflow-hidden active:scale-95 transition-transform">
+<img alt="Legendary Player Profile" class="w-full h-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYT5iHbRdnY8YFTRYIMylHS3LHRYJHutqhub4QIyJTqhEhHkcCjVKk73XG8coz7BhThxJZG5Ugl_QvLnAIE1j6h0sdaeIKP5VWkwLPPbJ7g-QzL_95nlJC_VNjgeHwXH2rjS8VDVoC3vYexpjNrjZ76QJQa6b-cpT8Hmltd604DpNFMCjSZOPBYPwL8f6D9ZjfpkSuoJoZyjKJHuHwjWGh-JiYoQSJ99Yk_-F_JeFJPBGxIOkrPjQCiFf9NBB6E-lqzN2dB3WAMTk"/>
+</div>
+</div>
+</nav>
+<!-- SideNavBar (Desktop Only) -->
+<aside class="fixed left-0 top-0 h-full w-64 z-40 bg-surface-container-lowest/90 backdrop-blur-2xl border-r border-outline-variant/20 shadow-2xl hidden lg:flex flex-col pt-24 pb-md">
+<div class="px-md mb-xl flex items-center gap-sm">
+<div class="w-10 h-10 bg-primary-container/20 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-fixed-dim" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+</div>
+<div>
+<div class="font-headline-md text-headline-md text-primary-fixed-dim leading-none">Leyenda Pro</div>
+<div class="font-label-md text-label-md text-on-surface-variant">Nivel 99</div>
+</div>
+</div>
+<nav class="flex-grow space-y-xs">
+<a class="flex items-center gap-md bg-primary-container/20 text-primary-fixed-dim border-r-4 border-primary-fixed-dim p-md hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant p-md hover:bg-surface-container-high hover:text-primary-fixed-dim hover:translate-x-1 duration-200 transition-all" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label-md text-label-md">Mi Equipo</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant p-md hover:bg-surface-container-high hover:text-primary-fixed-dim hover:translate-x-1 duration-200 transition-all" href="#">
+<span class="material-symbols-outlined">storefront</span>
+<span class="font-label-md text-label-md">Mercado</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant p-md hover:bg-surface-container-high hover:text-primary-fixed-dim hover:translate-x-1 duration-200 transition-all" href="#">
+<span class="material-symbols-outlined">military_tech</span>
+<span class="font-label-md text-label-md">Desafíos</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant p-md hover:bg-surface-container-high hover:text-primary-fixed-dim hover:translate-x-1 duration-200 transition-all" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-label-md text-label-md">Historial</span>
+</a>
+</nav>
+<div class="px-md mt-auto space-y-sm">
+<button class="w-full bg-primary-fixed-dim text-on-primary font-bold py-md rounded-lg shadow-[0_0_15px_rgba(0,219,233,0.3)] active:scale-95 transition-all">
+                ENTRAR A TORNEO
+            </button>
+<div class="pt-md border-t border-outline-variant/20">
+<a class="flex items-center gap-md text-on-surface-variant p-md hover:text-primary-fixed-dim transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">Soporte</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant p-md hover:text-primary-fixed-dim transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Cerrar Sesión</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="lg:ml-64 pt-24 px-margin pb-xl min-h-screen relative z-10">
+<header class="mb-xl flex flex-col items-center justify-center space-y-sm text-center">
+<img alt="Gold Shield Logo" class="w-24 h-24 drop-shadow-[0_0_20px_rgba(234,195,36,0.5)]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2CXk4rmP6Zc6kgoDWjhoxm1OVkEhJ2GtimM3S5HTaJa2vl7H2qclEMU8oFflo71i8S63tVWm2dgU3P44Zu2pkwTixUgq-pkLu8vWoIBKAheN4GyY9WvE0NkCIfYg2iu4UP1GTtZ4sAGj7x6VIBM9rRojnAVybM7QMYIOOnW7BDdEbREbw5ADQAT5ddA-Iaqb3v0Tsr69wjPzgytdUtDU1JqHzqy6cteMYkVjQB70JOBZbB2ALv7z9Cy_I8gUIxI01y4XU_FnrXsE"/>
+<h1 class="font-headline-xl text-headline-xl italic metallic-text uppercase tracking-tighter">
+                Torneo Leyendas
+            </h1>
+<p class="text-on-surface-variant font-label-md text-label-md max-w-xl">
+                Gira la ruleta del destino y convoca a los astros que marcaron la historia del fútbol mundial.
+            </p>
+</header>
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-xl">
+<!-- Left Column: The Roulette -->
+<section class="flex flex-col items-center gap-lg">
+<div class="relative glass-card rounded-[40px] p-lg flex items-center justify-center overflow-hidden w-full max-w-[600px] aspect-square glow-border-primary border-primary-fixed-dim/30">
+<!-- Spinning Background Glow -->
+<div class="absolute inset-0 bg-gradient-to-tr from-primary-fixed-dim/5 to-transparent anim-rotate"></div>
+<div class="relative w-full h-full flex items-center justify-center">
+<img alt="Roulette Wheel" class="w-full h-full object-contain anim-rotate" id="main-roulette" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYC42MaSmrQZqLQ2SBeP72lTKr1_-sJNJ8P6p2QVBqYUSHNHGYh5DFdeiBeJq8L5u4B2UoR03QfvwZoCSIr64WzV-eqGky5cEtmuy20jEzd0dKQ3ZaM4j3gHFSMn_pj0bK47pidWRQgGmo7F0frqXsbYLOKM8sMhScS0_yZJW08H571ZZAbNOIjcN2FMnVx5p59pli3KcrNMR3S2Vy4sxZGvTtumw8bfumFDh8PydKYFFveTJsaSgnA559xH3ACIbeJNo9YPzNenk"/>
+<!-- Center Badge Overlay -->
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-24 h-24 rounded-full bg-background/90 backdrop-blur-md p-2 shadow-2xl border border-primary-fixed-dim/50">
+<img alt="Shield Badge" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2CXk4rmP6Zc6kgoDWjhoxm1OVkEhJ2GtimM3S5HTaJa2vl7H2qclEMU8oFflo71i8S63tVWm2dgU3P44Zu2pkwTixUgq-pkLu8vWoIBKAheN4GyY9WvE0NkCIfYg2iu4UP1GTtZ4sAGj7x6VIBM9rRojnAVybM7QMYIOOnW7BDdEbREbw5ADQAT5ddA-Iaqb3v0Tsr69wjPzgytdUtDU1JqHzqy6cteMYkVjQB70JOBZbB2ALv7z9Cy_I8gUIxI01y4XU_FnrXsE"/>
+</div>
+</div>
+<!-- Indicator Arrow -->
+<div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 z-10">
+<span class="material-symbols-outlined text-primary-fixed-dim text-4xl" style="font-variation-settings: 'FILL' 1;">arrow_drop_down</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-md w-full max-w-[600px]">
+<button class="flex items-center justify-center gap-sm bg-surface-container-highest border border-primary-fixed-dim/50 text-primary-fixed-dim font-bold py-lg px-xl rounded-xl hover:bg-primary-fixed-dim/10 transition-all active:scale-95 group">
+<span class="material-symbols-outlined transition-transform group-hover:rotate-180 duration-500">shuffle</span>
+<span class="font-headline-md text-headline-md">BARAJAR</span>
+</button>
+<button class="flex items-center justify-center gap-sm bg-primary-fixed-dim text-on-primary font-bold py-lg px-xl rounded-xl shadow-[0_0_30px_rgba(0,219,233,0.4)] hover:shadow-[0_0_50px_rgba(0,219,233,0.6)] transition-all active:scale-95" id="spin-btn">
+<span class="material-symbols-outlined">auto_mode</span>
+<span class="font-headline-md text-headline-md">TIRAR RULETA</span>
+</button>
+</div>
+</section>
+<!-- Right Column: Card Grid -->
+<section class="space-y-lg">
+<div class="flex items-center justify-between border-b border-outline-variant/30 pb-sm">
+<h2 class="font-headline-md text-headline-md text-primary-fixed-dim">EQUIPO DE LEYENDAS</h2>
+<span class="font-label-md text-label-md text-on-surface-variant bg-surface-container-high px-md py-xs rounded-full">3 / 11 JUGADORES</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md max-h-[700px] overflow-y-auto pr-sm custom-scrollbar">
+<!-- Card 1: Pelé -->
+<div class="glass-card rounded-xl p-md flex gap-md items-center hover:bg-surface-container-highest/60 transition-all border-tertiary-fixed-dim/30 group">
+<div class="relative w-32 h-44 flex-shrink-0 bg-surface-bright rounded-lg overflow-hidden border border-tertiary-fixed-dim/50 legend-card-glow group-hover:scale-105 transition-transform">
+<div class="absolute top-1 left-2 flex flex-col items-center">
+<span class="font-headline-md text-headline-md text-tertiary-fixed-dim leading-none">99</span>
+<span class="font-label-md text-label-md text-tertiary-fixed font-bold">DEL</span>
+</div>
+<img class="w-full h-full object-cover grayscale brightness-125 hover:grayscale-0 transition-all duration-500" data-alt="A vintage cinematic portrait of the legendary football player Pele in his prime, wearing a classic white jersey. The aesthetic is high-tech cyberpunk with golden neon highlights tracing the contours of the player. Soft dramatic studio lighting creates deep shadows and highlights a premium, metallic gold finish around the card borders." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCA7_oxzALT-R9OARkLtJJve1j46k0gEfuhfDNaHUHfIGwkFbQeAVYpXvHGBZ80Pmnah2bwQWIzJ2fVBfsKe1MPxPhxKSJ6AdlavXm4uxadse5QG9j1oHbaCi5NgxTR39HfgcnWdWLXom5CVQkI3lDvnWaZp8hJbpuk5NUXF9W52sAW2qDKGIY-NB1Pf0ayqsEC6oEOLLvU1vFuIQF_ktJj1oM6YPJAXAjIbtzJlk-Fcp8JUrKok7CuSSBItrD4EhfW8SyqXZtJ8jI"/>
+<div class="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-surface-container-lowest to-transparent"></div>
+<div class="absolute bottom-2 left-0 w-full text-center font-bold text-tertiary-fixed-dim font-headline-md text-[14px]">PELÉ</div>
+</div>
+<div class="flex-grow">
+<div class="inline-block bg-tertiary-container text-on-tertiary-container text-[10px] font-bold px-2 py-0.5 rounded-full mb-xs">ICON</div>
+<h3 class="font-headline-md text-headline-md text-on-surface leading-tight">O Rei</h3>
+<p class="text-on-surface-variant text-label-md font-label-md">Selección de Brasil</p>
+<div class="mt-md flex gap-xs">
+<span class="bg-surface-container-high p-xs rounded text-[10px] border border-outline-variant/30">RIT 96</span>
+<span class="bg-surface-container-high p-xs rounded text-[10px] border border-outline-variant/30">TIR 98</span>
+<span class="bg-surface-container-high p-xs rounded text-[10px] border border-outline-variant/30">PAS 94</span>
+</div>
+</div>
+</div>
+<!-- Card 2: Maradona -->
+<div class="glass-card rounded-xl p-md flex gap-md items-center hover:bg-surface-container-highest/60 transition-all border-tertiary-fixed-dim/30 group">
+<div class="relative w-32 h-44 flex-shrink-0 bg-surface-bright rounded-lg overflow-hidden border border-tertiary-fixed-dim/50 legend-card-glow group-hover:scale-105 transition-transform">
+<div class="absolute top-1 left-2 flex flex-col items-center">
+<span class="font-headline-md text-headline-md text-tertiary-fixed-dim leading-none">98</span>
+<span class="font-label-md text-label-md text-tertiary-fixed font-bold">MED</span>
+</div>
+<img class="w-full h-full object-cover grayscale brightness-125 hover:grayscale-0 transition-all duration-500" data-alt="A hyper-realistic digital painting of Diego Maradona in a blue and white striped kit, reaching for a ball. The image is stylized with glowing cyan and gold circuit board patterns overlaying the scene. High contrast, dark moody background with particles of digital light floating around the legendary player in a futuristic sports arena." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoEfpkC3mgrvie9B9vRndW0xnwaQNyTHaJ2C_1NsZjCscGZ1CYYs69AIh27B0d00Ta_rMm-J8FFbyqelIuONiEbp9v09hWviS9KYtZrKbpBNKjJgEYwcAF8zfew4A0dwszrk3Pq9eEe3FTSoy-UdQBPORLs92uO_1-bBUjOBnYvhVWDW0j4EIqmy5A_4zSo__rRToPIVXK2cXNMAGMGbpqPO395CwfXFJmJJY9fxY4V77KF8-6ckolxDgUMgZ6RgvfFTMqFd_n5nI"/>
+<div class="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-surface-container-lowest to-transparent"></div>
+<div class="absolute bottom-2 left-0 w-full text-center font-bold text-tertiary-fixed-dim font-headline-md text-[14px]">MARADONA</div>
+</div>
+<div class="flex-grow">
+<div class="inline-block bg-tertiary-container text-on-tertiary-container text-[10px] font-bold px-2 py-0.5 rounded-full mb-xs">LEGEND</div>
+<h3 class="font-headline-md text-headline-md text-on-surface leading-tight">El Pibe de Oro</h3>
+<p class="text-on-surface-variant text-label-md font-label-md">Selección de Argentina</p>
+<div class="mt-md flex gap-xs">
+<span class="bg-surface-container-high p-xs rounded text-[10px] border border-outline-variant/30">RIT 92</span>
+<span class="bg-surface-container-high p-xs rounded text-[10px] border border-outline-variant/30">REG 99</span>
+<span class="bg-surface-container-high p-xs rounded text-[10px] border border-outline-variant/30">PAS 97</span>
+</div>
+</div>
+</div>
+<!-- Card 3: Cruyff -->
+<div class="glass-card rounded-xl p-md flex gap-md items-center hover:bg-surface-container-highest/60 transition-all border-primary-fixed-dim/20 group">
+<div class="relative w-32 h-44 flex-shrink-0 bg-surface-bright rounded-lg overflow-hidden border border-primary-fixed-dim/30 group-hover:scale-105 transition-transform">
+<div class="absolute top-1 left-2 flex flex-col items-center">
+<span class="font-headline-md text-headline-md text-primary-fixed-dim leading-none">95</span>
+<span class="font-label-md text-label-md text-primary-fixed font-bold">DEL</span>
+</div>
+<img class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500" data-alt="Artistic portrait of Johan Cruyff in an orange jersey, styled as a digital icon from the future. The composition features sharp geometric glass shards reflecting a stadium sunset. Dominant colors are neon orange and deep charcoal with sleek cyan light streaks. The mood is sophisticated, capturing the intellectual spirit of the legendary Dutch footballer." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5bGtZtqPZcXuS6lRRX65KXp5oMklpTcvdc17gEqDo4R4XIPphyoQkxK_LLsjdMbIxYlEEotnkFqxZGIyk0zYMsSReN0d4LtWPo91Li61FYlqtsshn-n15jqzVxpWSJAnDFjc_4pzD8VaiYHcjrR2mYFJ4MQfDGAit2dEaJtyx72_wuJOykMBedemE0J9JOJFCdrkDMMG75s2UTWsIik_41wY_0YWKwGz-EeYx5aAC4WOfD2ziZsABBlyCFwqL7w71AptpAv3NBKM"/>
+<div class="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-surface-container-lowest to-transparent"></div>
+<div class="absolute bottom-2 left-0 w-full text-center font-bold text-primary-fixed-dim font-headline-md text-[14px]">CRUYFF</div>
+</div>
+<div class="flex-grow">
+<div class="inline-block bg-primary-container text-on-primary-container text-[10px] font-bold px-2 py-0.5 rounded-full mb-xs">MASTER</div>
+<h3 class="font-headline-md text-headline-md text-on-surface leading-tight">Total Football</h3>
+<p class="text-on-surface-variant text-label-md font-label-md">Selección Holanda</p>
+<div class="mt-md flex gap-xs">
+<span class="bg-surface-container-high p-xs rounded text-[10px] border border-outline-variant/30">RIT 91</span>
+<span class="bg-surface-container-high p-xs rounded text-[10px] border border-outline-variant/30">REG 96</span>
+<span class="bg-surface-container-high p-xs rounded text-[10px] border border-outline-variant/30">PAS 93</span>
+</div>
+</div>
+</div>
+<!-- Placeholder: Next -->
+<div class="border-2 border-dashed border-outline-variant/30 rounded-xl p-md flex flex-col items-center justify-center text-on-surface-variant hover:border-primary-fixed-dim/50 hover:bg-primary-fixed-dim/5 transition-all cursor-pointer group">
+<span class="material-symbols-outlined text-4xl mb-sm group-hover:scale-110 transition-transform">add_circle</span>
+<span class="font-label-md text-label-md">Siguiente Leyenda</span>
+</div>
+</div>
+</section>
+</div>
+</main>
+<footer class="lg:ml-64 py-lg px-margin border-t border-outline-variant/20 bg-surface-container-lowest/50 backdrop-blur-sm text-center">
+<p class="text-on-surface-variant font-label-md text-label-md">
+            © 2024 TORNEO LEYENDAS - LA ERA DIGITAL DEL FÚTBOL CLÁSICO
+        </p>
+</footer>
+<script>
+        const spinBtn = document.getElementById('spin-btn');
+        const wheel = document.getElementById('main-roulette');
+        let isSpinning = false;
+        let currentRotation = 0;
+
+        spinBtn.addEventListener('click', () => {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            spinBtn.disabled = true;
+            spinBtn.classList.add('opacity-50');
+            
+            // Generate a random large rotation
+            const extraRotation = Math.floor(Math.random() * 360) + 1440; // At least 4 full turns
+            currentRotation += extraRotation;
+            
+            wheel.style.transition = 'transform 4s cubic-bezier(0.15, 0, 0.15, 1)';
+            wheel.style.transform = `rotate(${currentRotation}deg)`;
+            wheel.classList.remove('anim-rotate');
+
+            setTimeout(() => {
+                isSpinning = false;
+                spinBtn.disabled = false;
+                spinBtn.classList.remove('opacity-50');
+                
+                // Trigger a "win" effect or sound visual
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-xl left-1/2 -translate-x-1/2 bg-primary-container text-on-primary-container px-xl py-md rounded-xl font-bold shadow-2xl z-[100] animate-bounce';
+                toast.innerText = '¡NUEVA LEYENDA DETECTADA!';
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.remove();
+                    wheel.classList.add('anim-rotate');
+                }, 3000);
+            }, 4000);
+        });
+
+        // Atmosphere: Random grid flickering
+        setInterval(() => {
+            const grid = document.querySelector('.cyber-grid');
+            grid.style.opacity = (Math.random() * 0.1 + 0.9).toString();
+        }, 150);
+    </script>
+</body></html>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import sounds from '../utils/audio';
+import LogoShield from '../components/LogoShield';
 
 const IntroScreen = ({ onEnter }) => {
   const [audioEnabled, setAudioEnabled] = useState(true);
@@ -16,51 +17,136 @@ const IntroScreen = ({ onEnter }) => {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center bg-darkBg text-white overflow-hidden p-6 select-none">
-      {/* Background Cinematic Video/Static Glow */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(11,28,48,0.8)_0%,rgba(3,5,8,1)_80%)] z-0" />
+    <div className="relative h-screen flex flex-col items-center justify-center bg-darkBg text-white overflow-hidden select-none">
       
-      {/* Glowing Neon Lines decoration */}
-      <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-neonCyan/10 blur-[100px] z-0 animate-pulse" />
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-neonPink/10 blur-[100px] z-0 animate-pulse" />
+      {/* === LAYER 0: Deep cinematic radial gradient === */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_35%,rgba(11,28,48,0.85)_0%,rgba(5,10,18,0.95)_50%,rgba(3,5,8,1)_100%)] z-0" />
+      
+      {/* === LAYER 1: Subtle tech grid pattern === */}
+      <div 
+        className="absolute inset-0 z-0 opacity-20"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, rgba(14,21,32,0.8) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(14,21,32,0.8) 1px, transparent 1px)
+          `,
+          backgroundSize: '3rem 3rem',
+          maskImage: 'radial-gradient(ellipse 70% 60% at 50% 40%, black 40%, transparent 100%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 70% 60% at 50% 40%, black 40%, transparent 100%)',
+        }}
+      />
 
-      {/* Grid Pattern overlays */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0e1520_1px,transparent_1px),linear-gradient(to_bottom,#0e1520_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30 z-0" />
+      {/* === LAYER 2: Secondary hex-style micro pattern for depth === */}
+      <div 
+        className="absolute inset-0 z-0 opacity-[0.06]"
+        style={{
+          backgroundImage: `
+            linear-gradient(30deg, #0f1923 12%, transparent 12.5%, transparent 87%, #0f1923 87.5%, #0f1923),
+            linear-gradient(150deg, #0f1923 12%, transparent 12.5%, transparent 87%, #0f1923 87.5%, #0f1923),
+            linear-gradient(30deg, #0f1923 12%, transparent 12.5%, transparent 87%, #0f1923 87.5%, #0f1923),
+            linear-gradient(150deg, #0f1923 12%, transparent 12.5%, transparent 87%, #0f1923 87.5%, #0f1923),
+            linear-gradient(60deg, #13202e 25%, transparent 25.5%, transparent 75%, #13202e 75%, #13202e),
+            linear-gradient(60deg, #13202e 25%, transparent 25.5%, transparent 75%, #13202e 75%, #13202e)
+          `,
+          backgroundSize: '80px 140px',
+          backgroundPosition: '0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px',
+        }}
+      />
 
-      {/* Main content container */}
-      <div className="flex flex-col items-center max-w-2xl text-center z-10 animate-fade-in px-4">
-        {/* Championship badge representation */}
-        <div className="mb-4 relative">
-          <div className="absolute inset-0 rounded-full bg-neonCyan/20 blur-md animate-ping" />
-          <div className="w-20 h-20 rounded-full border-2 border-neonCyan flex items-center justify-center bg-panelBg shadow-neonCyan">
-            <svg className="w-10 h-10 text-neonCyan" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.504-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.75m5.007 0c.621 0 1.125-.504 1.125-1.125V10.5m-5.007 0c-.621 0-1.125-.504-1.125-1.125V10.5m5.007 0V6a2.25 2.25 0 00-2.25-2.25h-1.5A2.25 2.25 0 007.5 6v4.5m0 0V12m0 0H9.75" />
-            </svg>
+      {/* === LAYER 3: Focused neon glow behind hero content === */}
+      <div className="absolute top-[15%] left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-[radial-gradient(circle_at_center,rgba(0,243,255,0.08)_0%,transparent_65%)] z-0" />
+      
+      {/* === LAYER 4: Warm accent orbs (subtle) === */}
+      <div className="absolute -top-32 -left-32 w-80 h-80 rounded-full bg-neonCyan/[0.04] blur-[100px] z-0" />
+      <div className="absolute -bottom-32 -right-32 w-80 h-80 rounded-full bg-neonPink/[0.04] blur-[100px] z-0" />
+
+      {/* ============================
+           MAIN CONTENT 
+         ============================ */}
+      <div className="flex flex-col items-center max-w-2xl text-center z-10 px-4 animate-fade-in">
+        
+        {/* --- Shield Logo with Neon Ring Effect --- */}
+        <div className="mb-2" style={{ padding: '0.75rem', overflow: 'visible' }}>
+          <div 
+            className="flex items-center justify-center rounded-full logo-neon-ring"
+            style={{
+              width: '8rem',
+              height: '8rem',
+              background: 'radial-gradient(circle at center, #0b1324 0%, #060b14 100%)',
+              overflow: 'visible',
+            }}
+          >
+          <img 
+            src="/logo-escudo-clean.png" 
+            alt="Torneo Leyendas" 
+            className="w-[85%] h-[85%] object-contain"
+            style={{ 
+              mixBlendMode: 'lighten',
+              filter: 'drop-shadow(0 2px 8px rgba(205,155,80,0.3))',
+            }}
+            draggable="false"
+          />
           </div>
         </div>
 
-        {/* Cinematic pulsating title logo */}
-        <h1 className="text-5xl md:text-7xl font-extrabold uppercase tracking-tighter cinematic-title bg-clip-text text-transparent bg-gradient-to-b from-white via-gray-200 to-gray-400 drop-shadow-[0_0_20px_rgba(0,240,255,0.4)]">
-          Torneo Leyendas <span className="text-neonCyan block mt-1 drop-shadow-[0_0_15px_rgba(0,240,255,0.6)] font-black">FC</span>
+        {/* --- Main Title Stack --- */}
+        <h1 
+          className="font-black uppercase leading-[0.88] tracking-tight"
+          style={{ 
+            fontFamily: "'Outfit', sans-serif",
+            fontSize: 'clamp(2.4rem, 7vw, 4.2rem)',
+            color: '#00f3ff',
+            textShadow: '0 0 30px rgba(0,243,255,0.6), 0 0 60px rgba(0,243,255,0.2), 0 2px 4px rgba(0,0,0,0.8)',
+          }}
+        >
+          <span className="block">TORNEO</span>
+          <span className="block">LEYENDAS</span>
+          <span className="block text-[0.65em] mt-1 tracking-widest" style={{ 
+            textShadow: '0 0 20px rgba(0,243,255,0.8), 0 0 50px rgba(0,243,255,0.3)' 
+          }}>
+            FC
+          </span>
         </h1>
 
-        <p className="mt-6 text-gray-400 text-sm md:text-base tracking-widest font-mono uppercase">
+        {/* --- Subtitle --- */}
+        <p 
+          className="mt-3 text-sm md:text-base tracking-[0.25em] uppercase font-mono"
+          style={{ 
+            color: 'rgba(255,255,255,0.75)',
+            textShadow: '0 0 10px rgba(0,243,255,0.15)',
+          }}
+        >
           Edición Especial de Gestión y Ruletas
         </p>
 
-        {/* Audio selector prompt */}
-        <div className="mt-8 flex flex-col items-center bg-panelBg/80 border border-panelBorder p-4 rounded-xl max-w-xs w-full">
-          <span className="text-xs text-gray-400 font-mono tracking-wider mb-3">CONFIGURACIÓN DE SONIDO</span>
+        {/* --- Sound Config Panel --- */}
+        <div 
+          className="mt-4 w-full max-w-xs rounded-xl p-3.5"
+          style={{
+            background: 'linear-gradient(135deg, rgba(11,19,36,0.85) 0%, rgba(8,14,25,0.9) 100%)',
+            border: '1px solid rgba(255,255,255,0.07)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 4px 30px rgba(0,0,0,0.4)',
+            backdropFilter: 'blur(20px)',
+          }}
+        >
+          <span 
+            className="text-[10px] font-mono tracking-[0.2em] uppercase block mb-2.5"
+            style={{ color: 'rgba(255,255,255,0.35)' }}
+          >
+            CONFIGURACIÓN DE SONIDO
+          </span>
           <div className="flex items-center justify-between w-full">
-            <span className="text-sm font-semibold">Efectos de Sonido</span>
+            <span className="text-sm font-semibold text-white/90">Efectos de Sonido</span>
             <button
               onClick={() => setAudioEnabled(!audioEnabled)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${
-                audioEnabled ? 'bg-neonCyan' : 'bg-gray-700'
-              }`}
+              className="relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-300"
+              style={{
+                backgroundColor: audioEnabled ? '#00f3ff' : 'rgba(255,255,255,0.1)',
+                boxShadow: audioEnabled ? '0 0 12px rgba(0,243,255,0.5), inset 0 1px 2px rgba(0,0,0,0.2)' : 'inset 0 1px 3px rgba(0,0,0,0.3)',
+              }}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 shadow-md ${
                   audioEnabled ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
@@ -68,17 +154,26 @@ const IntroScreen = ({ onEnter }) => {
           </div>
         </div>
 
-        {/* Entrance CTA button */}
+        {/* --- CTA Button --- */}
         <button
           onClick={handleStart}
-          className="mt-12 px-12 py-4 rounded-full font-black text-lg tracking-widest bg-gradient-to-r from-neonCyan to-cyan-500 text-darkBg shadow-neonCyan hover:scale-105 hover:brightness-110 active:scale-95 transition-all duration-300 animate-pulse"
+          className="mt-4 px-14 py-3 rounded-full font-black text-base tracking-[0.2em] uppercase transition-all duration-300 hover:scale-[1.03] active:scale-95"
+          style={{
+            background: 'linear-gradient(135deg, #00f3ff 0%, #00c8d6 50%, #0099a8 100%)',
+            color: '#030508',
+            boxShadow: '0 0 30px rgba(0,243,255,0.35), 0 4px 15px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
+            textShadow: '0 1px 0 rgba(255,255,255,0.2)',
+          }}
         >
           ENTRAR AL ESTADIO
         </button>
 
-        {/* Mini disclaimer */}
-        <span className="mt-8 text-[10px] text-gray-500 font-mono tracking-wider">
-          INSPIRADO EN EA SPORTS FC & CHAMPIONS LEAGUE
+        {/* --- Footer --- */}
+        <span 
+          className="mt-4 text-[9px] font-mono tracking-[0.3em] uppercase"
+          style={{ color: 'rgba(255,255,255,0.2)' }}
+        >
+          INSPIRADO EN EA SPORTS FC &amp; CHAMPIONS LEAGUE
         </span>
       </div>
     </div>

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Torneo Leyendas FC - Premium Esports</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;family=Metropolis:ital,wght@0,400;0,600;0,700;1,900&amp;family=Public+Sans:wght@500&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#05070a",
+                    "on-primary-fixed-variant": "#004f54",
+                    "on-primary-container": "#006970",
+                    "tertiary-fixed-dim": "#eac324",
+                    "inverse-primary": "#006970",
+                    "on-secondary-container": "#590028",
+                    "secondary-fixed-dim": "#ffb1c4",
+                    "on-tertiary": "#3b2f00",
+                    "surface-container": "#0e121a",
+                    "on-error": "#690005",
+                    "surface-tint": "#00dbe9",
+                    "secondary-fixed": "#ffd9e1",
+                    "surface-variant": "#1c2331",
+                    "tertiary": "#fff5de",
+                    "primary-container": "#00f0ff",
+                    "on-tertiary-fixed-variant": "#554500",
+                    "inverse-on-surface": "#2e3134",
+                    "surface-container-high": "#141a26",
+                    "primary-fixed": "#7df4ff",
+                    "error": "#ffb4ab",
+                    "primary-fixed-dim": "#00dbe9",
+                    "on-error-container": "#ffdad6",
+                    "on-surface-variant": "#b9cacb",
+                    "surface-dim": "#05070a",
+                    "tertiary-fixed": "#ffe179",
+                    "tertiary-container": "#fed639",
+                    "surface-container-low": "#0a0d12",
+                    "surface": "#05070a",
+                    "secondary-container": "#ff4a8d",
+                    "outline": "#849495",
+                    "on-surface": "#e1e2e7",
+                    "error-container": "#93000a",
+                    "background": "#05070a",
+                    "on-primary": "#00363a",
+                    "surface-container-highest": "#1c2331",
+                    "on-background": "#e1e2e7",
+                    "on-tertiary-container": "#715d00",
+                    "on-secondary-fixed": "#3f001a",
+                    "secondary": "#ffb1c4",
+                    "on-secondary": "#65002e",
+                    "surface-bright": "#1c2331",
+                    "on-secondary-fixed-variant": "#8f0044",
+                    "on-primary-fixed": "#002022",
+                    "primary": "#dbfcff",
+                    "outline-variant": "#1c2331",
+                    "on-tertiary-fixed": "#231b00",
+                    "inverse-surface": "#e1e2e7"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "8px",
+                    "md": "16px",
+                    "gutter": "16px",
+                    "lg": "24px",
+                    "xs": "4px",
+                    "margin": "24px",
+                    "xl": "32px",
+                    "unit": "4px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Metropolis"],
+                    "body-lg": ["Inter"],
+                    "label-md": ["Public Sans"],
+                    "headline-xl": ["Metropolis"],
+                    "headline-lg": ["Metropolis"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "headline-xl": ["48px", {"lineHeight": "56px", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #05070a;
+            color: #e1e2e7;
+        }
+        .cyber-grid {
+            background-image: 
+                linear-gradient(to right, rgba(0, 219, 233, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 219, 233, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        .premium-panel {
+            background: #0e121a;
+            border: 1px solid #1c2331;
+        }
+        .neon-border-cyan {
+            box-shadow: 0 0 15px rgba(0, 219, 233, 0.4);
+            border: 1px solid rgba(0, 219, 233, 0.6);
+        }
+        .neon-text-cyan {
+            text-shadow: 0 0 10px rgba(0, 219, 233, 0.8);
+        }
+        @keyframes rotate-wheel {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .anim-rotate {
+            animation: rotate-wheel 30s linear infinite;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #05070a;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #1c2331;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="font-body-md min-h-screen">
+<div class="fixed inset-0 cyber-grid pointer-events-none"></div>
+<!-- Top Navigation -->
+<nav class="fixed top-0 w-full z-50 bg-[#05070a]/90 backdrop-blur-md border-b border-[#1c2331] h-20 flex items-center justify-between px-margin">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-black border-2 border-primary-fixed-dim flex items-center justify-center shadow-[0_0_15px_rgba(0,219,233,0.5)]">
+<span class="text-primary-fixed-dim font-black italic text-xl tracking-tighter neon-text-cyan">FC</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg font-black tracking-tighter uppercase italic text-on-surface">
+            TORNEO LEYENDAS <span class="text-primary-fixed-dim">FC</span>
+</h1>
+</div>
+<div class="hidden md:flex items-center gap-xl">
+<a class="text-primary-fixed-dim font-label-md text-label-md border-b-2 border-primary-fixed-dim pb-1" href="#">TORNEOS</a>
+<a class="text-on-surface-variant hover:text-primary-fixed-dim transition-colors font-label-md text-label-md" href="#">MERCADO</a>
+<a class="text-on-surface-variant hover:text-primary-fixed-dim transition-colors font-label-md text-label-md" href="#">NOTICIAS</a>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary-fixed-dim transition-colors">notifications</button>
+<div class="flex items-center gap-sm bg-surface-container px-md py-sm rounded-full border border-outline-variant">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-primary-fixed-dim">
+<img alt="User" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYT5iHbRdnY8YFTRYIMylHS3LHRYJHutqhub4QIyJTqhEhHkcCjVKk73XG8coz7BhThxJZG5Ugl_QvLnAIE1j6h0sdaeIKP5VWkwLPPbJ7g-QzL_95nlJC_VNjgeHwXH2rjS8VDVoC3vYexpjNrjZ76QJQa6b-cpT8Hmltd604DpNFMCjSZOPBYPwL8f6D9ZjfpkSuoJoZyjKJHuHwjWGh-JiYoQSJ99Yk_-F_JeFJPBGxIOkrPjQCiFf9NBB6E-lqzN2dB3WAMTk"/>
+</div>
+<span class="font-label-md text-label-md text-on-surface hidden lg:block">LEYENDA_PRO</span>
+</div>
+</div>
+</nav>
+<!-- Sidebar (Minimized Style) -->
+<aside class="fixed left-0 top-20 h-[calc(100vh-80px)] w-20 z-40 bg-[#05070a] border-r border-[#1c2331] hidden lg:flex flex-col items-center py-xl gap-lg">
+<a class="w-12 h-12 flex items-center justify-center rounded-xl bg-primary-fixed-dim/10 text-primary-fixed-dim hover:bg-primary-fixed-dim/20 transition-all" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+</a>
+<a class="w-12 h-12 flex items-center justify-center rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-primary-fixed-dim transition-all" href="#">
+<span class="material-symbols-outlined">groups</span>
+</a>
+<a class="w-12 h-12 flex items-center justify-center rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-primary-fixed-dim transition-all" href="#">
+<span class="material-symbols-outlined">military_tech</span>
+</a>
+<a class="w-12 h-12 flex items-center justify-center rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-primary-fixed-dim transition-all" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+</a>
+<div class="mt-auto flex flex-col gap-lg">
+<a class="w-12 h-12 flex items-center justify-center rounded-xl text-on-surface-variant hover:text-red-400 transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+</a>
+</div>
+</aside>
+<main class="lg:ml-20 pt-24 px-margin pb-xl min-h-screen">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-xl max-w-[1600px] mx-auto">
+<!-- Left Column: The Roulette -->
+<div class="lg:col-span-5 flex flex-col items-center gap-lg">
+<div class="relative w-full aspect-square max-w-[550px] premium-panel rounded-[60px] p-lg flex items-center justify-center overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+<!-- Background ambient glow -->
+<div class="absolute inset-0 bg-gradient-to-br from-primary-fixed-dim/5 via-transparent to-secondary-container/5"></div>
+<div class="relative w-full h-full flex items-center justify-center">
+<!-- Rotating Wheel from DataStore -->
+<img alt="Roulette Wheel" class="w-[90%] h-[90%] object-contain anim-rotate" id="wheel-img" src="https://lh3.googleusercontent.com/aida/ADBb0ujUAyOGJLjoss4IAHnLtcye0BulhfosgpYZgGTOdhLmEB0VEzwISL1WhaAOeGdmFC3_GgbA8zfBtLZ7UUQUddhdc2GIpihA1WmL3_RasyMavhruGJB31zKyaPrQ-Y2jzauoAYElexBOd8C0ELcoa2keG_CP9YXQnEtsMQTTVU8ToGxBDnEwGiaP4Y3jGCALSVsvGdkdW9YJvUojRGdJ2nj6reyFBlcKALVhMGAdGJOgzpItCDhYXnDqZWE"/>
+<!-- Center Overlay Replacement for Branding -->
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-24 h-24 rounded-full bg-black border-[3px] border-primary-fixed-dim flex items-center justify-center shadow-[0_0_25px_rgba(0,219,233,0.6)] z-10">
+<span class="text-primary-fixed-dim font-black italic text-3xl tracking-tighter neon-text-cyan">FC</span>
+</div>
+</div>
+<!-- Indicator -->
+<div class="absolute -top-2 left-1/2 -translate-x-1/2 z-20">
+<div class="w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-t-[25px] border-t-primary-fixed-dim drop-shadow-[0_0_10px_rgba(0,219,233,0.8)]"></div>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="grid grid-cols-2 gap-md w-full max-w-[550px]">
+<button class="bg-[#0e121a] border border-primary-fixed-dim/40 text-primary-fixed-dim font-headline-md text-headline-md py-lg rounded-2xl hover:bg-primary-fixed-dim/10 transition-all flex items-center justify-center gap-sm group">
+<span class="group-hover:rotate-180 transition-transform duration-500">🔀</span> BARAJAR
+                </button>
+<button class="bg-primary-fixed-dim text-[#05070a] font-headline-md text-headline-md py-lg rounded-2xl neon-border-cyan hover:brightness-110 transition-all active:scale-95 flex items-center justify-center gap-sm" id="spin-trigger">
+<span class="material-symbols-outlined">play_arrow</span> TIRAR
+                </button>
+</div>
+</div>
+<!-- Right Column: Lists and Info -->
+<div class="lg:col-span-7 space-y-lg">
+<!-- Header for lists -->
+<div class="flex items-center justify-between border-b border-[#1c2331] pb-md">
+<div class="flex items-center gap-md">
+<div class="w-2 h-8 bg-primary-fixed-dim rounded-full"></div>
+<h2 class="font-headline-md text-headline-md uppercase tracking-tight">Gestión del Club</h2>
+</div>
+<div class="flex gap-sm">
+<span class="bg-surface-container-high border border-outline-variant px-md py-1 rounded-full text-label-md font-label-md">División de Honor</span>
+<span class="bg-primary-container text-on-primary-container px-md py-1 rounded-full text-label-md font-label-md font-bold">TOP 50</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+<!-- Players List Panel -->
+<div class="premium-panel rounded-2xl p-lg flex flex-col h-[400px]">
+<div class="flex items-center justify-between mb-md">
+<h3 class="font-label-md text-label-md text-on-surface-variant font-bold uppercase">Plantilla Actual</h3>
+<span class="text-primary-fixed-dim text-xs">Ver todos</span>
+</div>
+<div class="flex-grow overflow-y-auto custom-scrollbar space-y-sm">
+<div class="flex items-center gap-md p-sm rounded-xl bg-surface-container-low border border-transparent hover:border-[#1c2331] transition-all group">
+<div class="w-12 h-12 bg-black rounded-lg border border-tertiary-fixed-dim/30 overflow-hidden">
+<img class="w-full h-full object-cover grayscale brightness-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCA7_oxzALT-R9OARkLtJJve1j46k0gEfuhfDNaHUHfIGwkFbQeAVYpXvHGBZ80Pmnah2bwQWIzJ2fVBfsKe1MPxPhxKSJ6AdlavXm4uxadse5QG9j1oHbaCi5NgxTR39HfgcnWdWLXom5CVQkI3lDvnWaZp8hJbpuk5NUXF9W52sAW2qDKGIY-NB1Pf0ayqsEC6oEOLLvU1vFuIQF_ktJj1oM6YPJAXAjIbtzJlk-Fcp8JUrKok7CuSSBItrD4EhfW8SyqXZtJ8jI"/>
+</div>
+<div class="flex-grow">
+<div class="font-bold text-sm">Pelé</div>
+<div class="text-[10px] text-on-surface-variant">DEL • 99 OVR</div>
+</div>
+<div class="text-tertiary-fixed-dim font-black italic">LEG</div>
+</div>
+<div class="flex items-center gap-md p-sm rounded-xl bg-surface-container-low border border-transparent hover:border-[#1c2331] transition-all group">
+<div class="w-12 h-12 bg-black rounded-lg border border-tertiary-fixed-dim/30 overflow-hidden">
+<img class="w-full h-full object-cover grayscale brightness-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoEfpkC3mgrvie9B9vRndW0xnwaQNyTHaJ2C_1NsZjCscGZ1CYYs69AIh27B0d00Ta_rMm-J8FFbyqelIuONiEbp9v09hWviS9KYtZrKbpBNKjJgEYwcAF8zfew4A0dwszrk3Pq9eEe3FTSoy-UdQBPORLs92uO_1-bBUjOBnYvhVWDW0j4EIqmy5A_4zSo__rRToPIVXK2cXNMAGMGbpqPO395CwfXFJmJJY9fxY4V77KF8-6ckolxDgUMgZ6RgvfFTMqFd_n5nI"/>
+</div>
+<div class="flex-grow">
+<div class="font-bold text-sm">Maradona</div>
+<div class="text-[10px] text-on-surface-variant">MED • 98 OVR</div>
+</div>
+<div class="text-tertiary-fixed-dim font-black italic">LEG</div>
+</div>
+<div class="flex items-center gap-md p-sm rounded-xl bg-surface-container-low border border-transparent hover:border-[#1c2331] transition-all group">
+<div class="w-12 h-12 bg-black rounded-lg border border-primary-fixed-dim/30 overflow-hidden">
+<img class="w-full h-full object-cover grayscale brightness-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5bGtZtqPZcXuS6lRRX65KXp5oMklpTcvdc17gEqDo4R4XIPphyoQkxK_LLsjdMbIxYlEEotnkFqxZGIyk0zYMsSReN0d4LtWPo91Li61FYlqtsshn-n15jqzVxpWSJAnDFjc_4pzD8VaiYHcjrR2mYFJ4MQfDGAit2dEaJtyx72_wuJOykMBedemE0J9JOJFCdrkDMMG75s2UTWsIik_41wY_0YWKwGz-EeYx5aAC4WOfD2ziZsABBlyCFwqL7w71AptpAv3NBKM"/>
+</div>
+<div class="flex-grow">
+<div class="font-bold text-sm">Cruyff</div>
+<div class="text-[10px] text-on-surface-variant">DEL • 95 OVR</div>
+</div>
+<div class="text-primary-fixed-dim font-black italic">MST</div>
+</div>
+</div>
+</div>
+<!-- Classification Panel -->
+<div class="premium-panel rounded-2xl p-lg flex flex-col h-[400px]">
+<div class="flex items-center justify-between mb-md">
+<h3 class="font-label-md text-label-md text-on-surface-variant font-bold uppercase">Clasificación Grupo A</h3>
+<span class="text-primary-fixed-dim text-xs">Fixture</span>
+</div>
+<div class="flex-grow overflow-y-auto custom-scrollbar">
+<table class="w-full text-left">
+<thead class="text-[10px] text-on-surface-variant uppercase border-b border-[#1c2331]">
+<tr>
+<th class="py-2">Pos</th>
+<th class="py-2">Club</th>
+<th class="py-2 text-right">Pts</th>
+</tr>
+</thead>
+<tbody class="text-sm">
+<tr class="border-b border-[#1c2331]/50 bg-primary-fixed-dim/5">
+<td class="py-3 font-black text-primary-fixed-dim">1</td>
+<td class="py-3 font-bold">Leyendas FC</td>
+<td class="py-3 text-right font-bold text-primary-fixed-dim">12</td>
+</tr>
+<tr class="border-b border-[#1c2331]/50">
+<td class="py-3 text-on-surface-variant">2</td>
+<td class="py-3">Galaxy Elite</td>
+<td class="py-3 text-right">9</td>
+</tr>
+<tr class="border-b border-[#1c2331]/50">
+<td class="py-3 text-on-surface-variant">3</td>
+<td class="py-3">Neon Stars</td>
+<td class="py-3 text-right">7</td>
+</tr>
+<tr class="border-b border-[#1c2331]/50">
+<td class="py-3 text-on-surface-variant">4</td>
+<td class="py-3">Old School United</td>
+<td class="py-3 text-right">4</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Market/Teams Quick View -->
+<div class="premium-panel rounded-2xl p-lg">
+<div class="flex items-center justify-between mb-lg">
+<h3 class="font-label-md text-label-md text-on-surface-variant font-bold uppercase">Mercado de Transferencias</h3>
+<div class="flex gap-md">
+<span class="text-tertiary-fixed-dim flex items-center gap-xs font-bold"><span class="material-symbols-outlined text-sm">toll</span> 24,500</span>
+</div>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-md">
+<div class="bg-surface-container-low p-md rounded-xl border border-[#1c2331] hover:border-primary-fixed-dim/50 transition-all cursor-pointer">
+<div class="h-20 bg-black/40 rounded-lg mb-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl text-primary-fixed-dim">package_2</span>
+</div>
+<div class="text-[10px] uppercase font-bold text-on-surface-variant">Sobre Oro</div>
+<div class="text-xs font-bold text-tertiary-fixed-dim">500 Cr.</div>
+</div>
+<div class="bg-surface-container-low p-md rounded-xl border border-[#1c2331] hover:border-primary-fixed-dim/50 transition-all cursor-pointer">
+<div class="h-20 bg-black/40 rounded-lg mb-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl text-secondary">flash_on</span>
+</div>
+<div class="text-[10px] uppercase font-bold text-on-surface-variant">Impulso Ritmo</div>
+<div class="text-xs font-bold text-tertiary-fixed-dim">150 Cr.</div>
+</div>
+<div class="bg-surface-container-low p-md rounded-xl border border-[#1c2331] hover:border-primary-fixed-dim/50 transition-all cursor-pointer">
+<div class="h-20 bg-black/40 rounded-lg mb-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl text-tertiary-fixed-dim">shield</span>
+</div>
+<div class="text-[10px] uppercase font-bold text-on-surface-variant">Escudo Epic</div>
+<div class="text-xs font-bold text-tertiary-fixed-dim">1,200 Cr.</div>
+</div>
+<div class="bg-surface-container-low p-md rounded-xl border border-[#1c2331] hover:border-primary-fixed-dim/50 transition-all cursor-pointer flex flex-col items-center justify-center border-dashed">
+<span class="material-symbols-outlined text-on-surface-variant">add_circle</span>
+<div class="text-[10px] uppercase font-bold text-on-surface-variant mt-xs">Ver más</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="lg:ml-20 py-lg border-t border-[#1c2331] bg-[#0e121a]/50 text-center">
+<p class="text-on-surface-variant text-label-md font-label-md uppercase tracking-widest">
+        © 2024 TORNEO LEYENDAS FC • POWERED BY ESPORTS ELITE
+    </p>
+</footer>
+<script>
+    const spinBtn = document.getElementById('spin-trigger');
+    const wheel = document.getElementById('wheel-img');
+    let spinning = false;
+    let rotation = 0;
+
+    spinBtn.addEventListener('click', () => {
+        if (spinning) return;
+        spinning = true;
+        
+        const extra = Math.floor(Math.random() * 360) + 1800; // 5 full spins + random
+        rotation += extra;
+        
+        wheel.classList.remove('anim-rotate');
+        wheel.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.15, 1)';
+        wheel.style.transform = `rotate(${rotation}deg)`;
+        
+        spinBtn.classList.add('opacity-50', 'pointer-events-none');
+
+        setTimeout(() => {
+            spinning = false;
+            spinBtn.classList.remove('opacity-50', 'pointer-events-none');
+            
+            // Show result toast
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-24 left-1/2 -translate-x-1/2 bg-primary-fixed-dim text-[#05070a] px-lg py-md rounded-full font-bold shadow-[0_0_30px_rgba(0,219,233,0.8)] z-[100] animate-bounce';
+            toast.innerText = '¡NUEVO JUGADOR DESBLOQUEADO!';
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+                wheel.classList.add('anim-rotate');
+            }, 3000);
+        }, 5000);
+    });
+</script>
+</body></html>

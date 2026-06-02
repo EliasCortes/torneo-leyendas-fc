@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import sounds from '../utils/audio';
+import LogoShield from '../components/LogoShield';
 
 const RouletteWheel = ({ options = [], onFinished, buttonText = 'TIRAR RULETA', disabled = false, onSpinStart }) => {
   const canvasRef = useRef(null);
@@ -104,7 +105,7 @@ const RouletteWheel = ({ options = [], onFinished, buttonText = 'TIRAR RULETA', 
       ctx.restore();
     });
 
-    // Draw central node (FUT theme logo or style)
+    // Draw central node base
     ctx.beginPath();
     ctx.arc(centerX, centerY, 35, 0, 2 * Math.PI);
     ctx.fillStyle = '#05070a';
@@ -112,19 +113,6 @@ const RouletteWheel = ({ options = [], onFinished, buttonText = 'TIRAR RULETA', 
     ctx.lineWidth = 3;
     ctx.strokeStyle = '#00f0ff';
     ctx.stroke();
-
-    // Draw central inner crown
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, 28, 0, 2 * Math.PI);
-    ctx.fillStyle = '#0f1420';
-    ctx.fill();
-
-    // Text in center
-    ctx.fillStyle = '#00f0ff';
-    ctx.font = "900 10px 'Outfit', sans-serif";
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText("FC", centerX, centerY);
 
     // Draw top pointer (indicator)
     ctx.beginPath();
@@ -295,6 +283,33 @@ const RouletteWheel = ({ options = [], onFinished, buttonText = 'TIRAR RULETA', 
             isShuffling ? 'shadow-[0_0_25px_rgba(0,240,255,0.5)] animate-pulse' : ''
           }`}
         />
+
+        {/* DOM Overlay for the central logo */}
+        <div 
+           className="absolute z-10 flex items-center justify-center rounded-full"
+           style={{
+             top: '50%',
+             left: '50%',
+             transform: 'translate(-50%, -50%)',
+             width: '5.5rem',
+             height: '5.5rem',
+             background: 'radial-gradient(circle at center, #0b1324 0%, #060b14 100%)',
+             border: '1px solid rgba(0, 243, 255, 0.3)',
+             boxShadow: 'inset 0 0 18px rgba(0, 243, 255, 0.15), 0 0 30px rgba(0, 243, 255, 0.12), 0 0 60px rgba(0,0,0,0.6)',
+             overflow: 'hidden',
+           }}
+        >
+           <img 
+             src="/logo-escudo-clean.png" 
+             alt="Torneo Leyendas" 
+             className="w-[85%] h-[85%] object-contain"
+             style={{ 
+               mixBlendMode: 'lighten',
+               filter: 'drop-shadow(0 2px 8px rgba(205,155,80,0.3))',
+             }}
+             draggable="false"
+           />
+        </div>
       </div>
 
       <div className="flex gap-4 mt-8 w-full justify-center">

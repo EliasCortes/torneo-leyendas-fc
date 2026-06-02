@@ -874,22 +874,90 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
               </div>
             </div>
 
-            <div className="bg-panelBg border border-panelBorder p-6 rounded-2xl shadow-lg">
-              <h3 className="text-sm font-extrabold tracking-wider font-mono text-gray-400 mb-4">EQUIPOS ASIGNADOS</h3>
-              {tournament.teams.length === 0 ? (
-                <div className="text-center py-12 text-gray-500 font-mono text-xs">
-                  Gira la ruleta para asignar el primer equipo...
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[300px] overflow-y-auto pr-1">
-                  {tournament.teams.map((t, idx) => (
-                    <div key={idx} className="p-3 bg-darkBg border border-panelBorder rounded-xl text-center shadow">
-                      <span className="text-[9px] text-neonCyan font-mono font-bold block uppercase">{t.owner}</span>
-                      <span className="font-extrabold text-sm text-white truncate block mt-1">{t.name}</span>
+            <div 
+              className="rounded-2xl relative overflow-hidden min-h-[280px]"
+              style={{
+                background: 'linear-gradient(145deg, rgba(11,19,36,0.9) 0%, rgba(8,14,25,0.95) 100%)',
+                border: '1px solid rgba(255,255,255,0.06)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03), 0 8px 32px rgba(0,0,0,0.4)',
+              }}
+            >
+              {/* Watermark logo - large centered branding */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+                <img 
+                  src="/logo-escudo-clean.png" 
+                  alt="" 
+                  className="w-[70%] max-w-[320px] object-contain opacity-[0.06]"
+                  style={{ 
+                    mixBlendMode: 'lighten',
+                    filter: 'saturate(0.6)',
+                  }}
+                  draggable="false"
+                />
+              </div>
+
+              {/* Top subtle glow accent line */}
+              <div 
+                className="absolute top-0 left-[10%] right-[10%] h-[1px] z-10"
+                style={{ background: 'linear-gradient(90deg, transparent, rgba(0,243,255,0.15), transparent)' }}
+              />
+
+              {/* Header */}
+              <div className="px-6 pt-5 pb-3 relative z-10 flex items-center justify-between">
+                <h3 
+                  className="text-[11px] font-extrabold tracking-[0.2em] font-mono uppercase"
+                  style={{ color: 'rgba(255,255,255,0.4)' }}
+                >
+                  EQUIPOS ASIGNADOS
+                </h3>
+                <span 
+                  className="text-[9px] font-mono tracking-widest"
+                  style={{ color: 'rgba(0,243,255,0.4)' }}
+                >
+                  {tournament.teams.length} / {turnSequence.length}
+                </span>
+              </div>
+
+              {/* Content */}
+              <div className="px-6 pb-6 relative z-10">
+                {tournament.teams.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 gap-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,243,255,0.03)' }}>
+                      <svg className="w-5 h-5 text-neonCyan/40" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
+                      </svg>
                     </div>
-                  ))}
-                </div>
-              )}
+                    <span className="text-gray-500 font-mono text-xs tracking-wide">
+                      Gira la ruleta para asignar el primer equipo...
+                    </span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-h-[260px] overflow-y-auto pr-1">
+                    {tournament.teams.map((t, idx) => (
+                      <div 
+                        key={idx} 
+                        className="p-3 rounded-xl text-center transition-all duration-300 hover:scale-[1.02] group cursor-default"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(5,10,20,0.8) 0%, rgba(11,19,36,0.7) 100%)',
+                          border: '1px solid rgba(255,255,255,0.05)',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = 'rgba(0,243,255,0.2)';
+                          e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,243,255,0.08), 0 2px 8px rgba(0,0,0,0.3)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+                          e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+                        }}
+                      >
+                        <span className="text-[8px] text-neonCyan/70 font-mono font-bold block uppercase tracking-wider">{t.owner}</span>
+                        <span className="font-extrabold text-sm text-white/90 truncate block mt-1 group-hover:text-white transition-colors">{t.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
