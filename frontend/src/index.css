@@ -268,3 +268,13 @@ body {
 .spin-slow {
   animation: spin-infinite 20s infinite linear;
 }
+
+@keyframes shuffle-shake {
+  0% { transform: scale(1) rotate(0deg); filter: brightness(1); }
+  25% { transform: scale(0.97) rotate(-4deg); filter: brightness(1.2) drop-shadow(0 0 15px rgba(212,175,55,0.4)); }
+  75% { transform: scale(0.97) rotate(4deg); filter: brightness(1.2) drop-shadow(0 0 15px rgba(212,175,55,0.4)); }
+  100% { transform: scale(1) rotate(0deg); filter: brightness(1); }
+}
+.animate-shuffle-shake {
+  animation: shuffle-shake 0.2s ease-in-out;
+}

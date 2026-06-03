@@ -42,6 +42,12 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
   const [selectedLegendForComodin, setSelectedLegendForComodin] = useState('');
   const [removeInput, setRemoveInput] = useState('');
   const [removeError, setRemoveError] = useState('');
+
+  // Pending spin results and keys for respinning
+  const [pendingSpinResult, setPendingSpinResult] = useState(null);
+  const [pendingSubSpinResult, setPendingSubSpinResult] = useState(null);
+  const [wheelKey, setWheelKey] = useState(0);
+  const [subWheelKey, setSubWheelKey] = useState(0);
   
   // Pools that shrink as they are drawn
   const [availableTeams, setAvailableTeams] = useState([]);
@@ -52,6 +58,8 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
 
   // Player Repesca Tokens Bank
   const [playerRepescas, setPlayerRepescas] = useState({});
+  const [playerRepeats, setPlayerRepeats] = useState({});
+  const [playerSpecialAdvantages, setPlayerSpecialAdvantages] = useState({});
 
   // Group distribution state
   const [groupMode, setGroupMode] = useState('balanced'); // 'balanced', 'random', 'manual'
@@ -97,12 +105,31 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
         setAvailableSilvers(data.silver_legends.filter(c => !assignedLegends.has(c)));
         setAvailableBronzes(data.bronze_legends.filter(c => !assignedLegends.has(c)));
         
-        // Initialize player repesca tokens bank
+        // Initialize player tokens bank (Repescas, repeats, specials)
         const reps = {};
+        const repeats = {};
+        const specials = {};
         tournament.human_players.forEach(p => {
-          reps[p.name] = (tournament.advantages && tournament.advantages.wildcards && tournament.advantages.wildcards[p.name]) || 1;
+          const inv = (tournament.advantages && tournament.advantages.inventories && tournament.advantages.inventories[p.name]) || {
+            repescas: (tournament.advantages && tournament.advantages.wildcards && tournament.advantages.wildcards[p.name]) || 1,
+            repeats: 0,
+            comodinOro: 0,
+            comodinDiamante: 0,
+            ruletaOro: 0,
+            ruletaDiamante: 0
+          };
+          reps[p.name] = inv.repescas || 0;
+          repeats[p.name] = inv.repeats || 0;
+          specials[p.name] = {
+            comodinOro: inv.comodinOro || 0,
+            comodinDiamante: inv.comodinDiamante || 0,
+            ruletaOro: inv.ruletaOro || 0,
+            ruletaDiamante: inv.ruletaDiamante || 0
+          };
         });
         setPlayerRepescas(reps);
+        setPlayerRepeats(repeats);
+        setPlayerSpecialAdvantages(specials);
 
         // Build Turn Sequence for Sorteo Equipos (alternating order, omitting pre-assigned teams)
         const seq = [];
@@ -168,8 +195,135 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
     setAvailableBronzes(prev => prev.filter(c => c !== legendName));
   };
 
+  // --- HELPERS FOR INVENTORIES & RESPINS ---
+  const syncTournamentInventories = (reps = playerRepescas, repeats = playerRepeats, specials = playerSpecialAdvantages) => {
+    setTournament(prev => {
+      const updated = { ...prev };
+      if (!updated.advantages) updated.advantages = {};
+      
+      const invs = {};
+      prev.human_players.forEach(p => {
+        invs[p.name] = {
+          repescas: reps[p.name] || 0,
+          repeats: repeats[p.name] || 0,
+          comodinOro: specials[p.name]?.comodinOro || 0,
+          comodinDiamante: specials[p.name]?.comodinDiamante || 0,
+          ruletaOro: specials[p.name]?.ruletaOro || 0,
+          ruletaDiamante: specials[p.name]?.ruletaDiamante || 0
+        };
+      });
+      updated.advantages.inventories = invs;
+      
+      // Keep wildcard count in sync for backwards compatibility
+      if (!updated.advantages.wildcards) updated.advantages.wildcards = {};
+      prev.human_players.forEach(p => {
+        updated.advantages.wildcards[p.name] = reps[p.name] || 1;
+      });
+
+      return updated;
+    });
+  };
+
+  const handleUseRepeatSpin = () => {
+    if (!pendingSpinResult) return;
+    const owner = pendingSpinResult.owner;
+    const currentReps = playerRepeats[owner] || 0;
+    if (currentReps <= 0) return;
+
+    sounds.playTick();
+
+    const updatedRepeats = {
+      ...playerRepeats,
+      [owner]: currentReps - 1
+    };
+    setPlayerRepeats(updatedRepeats);
+    syncTournamentInventories(playerRepescas, updatedRepeats, playerSpecialAdvantages);
+
+    setPendingSpinResult(null);
+    setIsProcessing(false);
+    setWheelKey(prev => prev + 1);
+  };
+
+  const handleUseRepeatSubSpin = () => {
+    if (!pendingSubSpinResult) return;
+    const owner = pendingSubSpinResult.owner;
+    const currentReps = playerRepeats[owner] || 0;
+    if (currentReps <= 0) return;
+
+    sounds.playTick();
+
+    const updatedRepeats = {
+      ...playerRepeats,
+      [owner]: currentReps - 1
+    };
+    setPlayerRepeats(updatedRepeats);
+    syncTournamentInventories(playerRepescas, updatedRepeats, playerSpecialAdvantages);
+
+    setPendingSubSpinResult(null);
+    setSubWheelKey(prev => prev + 1);
+  };
+
+  // --- SPECIAL ADVANTAGES TRIGGER AND EXECUTION ---
+  const handleUseSpecialAdvantage = (playerName, type) => {
+    const playerTeams = tournament.teams.filter(t => t.owner === playerName);
+    if (playerTeams.length === 0) {
+      alert('Debes tener al menos un equipo asignado para usar esta ventaja.');
+      return;
+    }
+    
+    if (playerTeams.length === 1) {
+      executeSpecialAdvantage(playerName, type, playerTeams[0]);
+    } else {
+      setModalType('select_team_for_advantage');
+      setModalData({ playerName, type, teams: playerTeams });
+    }
+  };
+
+  const executeSpecialAdvantage = (playerName, type, team) => {
+    sounds.playTick();
+    
+    const fakeSpinLog = {
+      accion: `Ventaja: ${type}`,
+      resultado: 'Pendiente'
+    };
+    
+    const contextData = {
+      isSpecialAdvantage: true,
+      specialAdvantageType: type,
+      playerName,
+      team,
+      spinLog: fakeSpinLog
+    };
+    
+    if (type === 'comodinOro') {
+      setModalType('comodin_select');
+      setModalData({ category: 'Oro', pool: availableGolds, team, spinLog: fakeSpinLog, contextData });
+      setSelectedLegendForComodin('');
+    } else if (type === 'comodinDiamante') {
+      setModalType('comodin_select');
+      setModalData({ category: 'Diamante', pool: availableDiamonds, team, spinLog: fakeSpinLog, contextData });
+      setSelectedLegendForComodin('');
+    } else if (type === 'ruletaOro') {
+      setModalType('sub_wheel_legend');
+      setModalData({ category: 'Oro', options: availableGolds, team, spinLog: fakeSpinLog, contextData });
+    } else if (type === 'ruletaDiamante') {
+      setModalType('sub_wheel_legend');
+      setModalData({ category: 'Diamante', options: availableDiamonds, team, spinLog: fakeSpinLog, contextData });
+    }
+  };
+
   // --- SORTEO EQUIPOS ---
   const handleTeamDrawn = (teamName) => {
+    const latestTurnIndex = currentTurnIndexRef.current;
+    const activePlayerName = turnSequence[latestTurnIndex];
+    setPendingSpinResult({
+      type: 'team',
+      value: teamName,
+      owner: activePlayerName
+    });
+  };
+
+  const confirmTeamDrawn = (teamName) => {
     const latestTurnIndex = currentTurnIndexRef.current;
     const activePlayerName = turnSequence[latestTurnIndex];
     
@@ -182,7 +336,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
       option_results: [],
       base_changes: [],
       spins: [],
-      eliminated_players: [], // To keep track of deleted players for recovery
+      eliminated_players: [],
       wildcards: { Bronce: 0, Plata: 0, Oro: 0, Diamante: 0 }
     };
 
@@ -191,10 +345,9 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
     const updatedTournament = { ...latestTournament, teams: updatedTeams };
     setTournament(updatedTournament);
     
-    // Remove team from available pool
     setAvailableTeams(prev => prev.filter(t => t !== teamName));
+    setPendingSpinResult(null);
 
-    // Next turn or Next Phase
     if (latestTurnIndex < turnSequence.length - 1) {
       setCurrentTurnIndex(latestTurnIndex + 1);
       setIsProcessing(false);
@@ -209,6 +362,17 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
 
   // --- RULETA DIAMANTE (CAPITANES) ---
   const handleCaptainDrawn = (captainName) => {
+    const latestTeamIndex = currentTeamIndexRef.current;
+    const activeTeamOwner = tournament.teams[latestTeamIndex]?.owner;
+    setPendingSpinResult({
+      type: 'captain',
+      value: captainName,
+      owner: activeTeamOwner,
+      teamIndex: latestTeamIndex
+    });
+  };
+
+  const confirmCaptainDrawn = (captainName) => {
     const latestTeamIndex = currentTeamIndexRef.current;
     const latestTournament = tournamentRef.current;
     const updatedTeams = [...latestTournament.teams];
@@ -225,11 +389,9 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
 
     const updatedTournament = { ...latestTournament, teams: updatedTeams };
     setTournament(updatedTournament);
-    
-    // Lock captain globally
     lockLegend(captainName);
+    setPendingSpinResult(null);
 
-    // Next team or Next Phase
     setTimeout(() => {
       if (latestTeamIndex < latestTournament.teams.length - 1) {
         setCurrentTeamIndex(latestTeamIndex + 1);
@@ -241,11 +403,22 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
         setCurrentSpinNumber(1);
         setIsProcessing(false);
       }
-    }, 1000);
+    }, 500);
   };
 
   // --- RULETA OPCIONES ---
   const handleOptionDrawn = (optionName) => {
+    const latestOptionTeamIndex = currentOptionTeamIndexRef.current;
+    const activeTeamOwner = tournament.teams[latestOptionTeamIndex]?.owner;
+    setPendingSpinResult({
+      type: 'option',
+      value: optionName,
+      owner: activeTeamOwner,
+      teamIndex: latestOptionTeamIndex
+    });
+  };
+
+  const confirmOptionDrawn = (optionName) => {
     const latestOptionTeamIndex = currentOptionTeamIndexRef.current;
     const latestTournament = tournamentRef.current;
     const updatedTeams = [...latestTournament.teams];
@@ -260,8 +433,8 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
     currentTeam.spins.push(spinLog);
     
     setTournament({ ...latestTournament, teams: updatedTeams });
+    setPendingSpinResult(null);
 
-    // Handle Option Effect Resolution
     resolveOptionEffect(optionName, currentTeam, spinLog);
   };
 
@@ -402,8 +575,17 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
   };
 
   // --- LIVE VISUAL LEGEND GIROS ---
-  const handleSubLegendFinished = (legendName) => {
-    const { category, team, spinLog } = modalData;
+  const handleSubLegendFinishedWrapper = (legendName) => {
+    setPendingSubSpinResult({
+      type: 'sub_legend',
+      value: legendName,
+      owner: modalData.team?.owner,
+      modalData: modalData
+    });
+  };
+
+  const confirmSubLegendFinished = (legendName, mData) => {
+    const { category, team, spinLog, contextData } = mData;
     sounds.playSuccess();
     
     const legendPos = getLegendPosition(legendName);
@@ -414,7 +596,28 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
     lockLegend(legendName);
     
     setModalType(null);
-    completeOptionSpin(`Leyenda ${category}: ${legendName}`, spinLog);
+    setPendingSubSpinResult(null);
+
+    if (contextData && contextData.isSpecialAdvantage) {
+      // Deduct item
+      const pName = contextData.playerName;
+      const advType = contextData.specialAdvantageType;
+      
+      const updatedSpecials = {
+        ...playerSpecialAdvantages,
+        [pName]: {
+          ...playerSpecialAdvantages[pName],
+          [advType]: Math.max(0, (playerSpecialAdvantages[pName]?.[advType] || 1) - 1)
+        }
+      };
+      setPlayerSpecialAdvantages(updatedSpecials);
+      syncTournamentInventories(playerRepescas, playerRepeats, updatedSpecials);
+
+      setModalType('result_message_static');
+      setModalData({ message: `Leyenda ${category}: ${legendName} añadida a ${team.name}` });
+    } else {
+      completeOptionSpin(`Leyenda ${category}: ${legendName}`, spinLog);
+    }
   };
 
   // --- COMODÍN IMMEDIATE CONFIRM ---
@@ -422,7 +625,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
     if (!selectedLegendForComodin) return;
     sounds.playSuccess();
     
-    const { category, team, spinLog } = modalData;
+    const { category, team, spinLog, contextData } = modalData;
     const legendName = selectedLegendForComodin;
     
     const legendPos = getLegendPosition(legendName);
@@ -433,17 +636,47 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
     lockLegend(legendName);
     
     setModalType(null);
-    completeOptionSpin(`Comodín ${category}: ${legendName}`, spinLog);
+
+    if (contextData && contextData.isSpecialAdvantage) {
+      // Deduct item
+      const pName = contextData.playerName;
+      const advType = contextData.specialAdvantageType;
+      
+      const updatedSpecials = {
+        ...playerSpecialAdvantages,
+        [pName]: {
+          ...playerSpecialAdvantages[pName],
+          [advType]: Math.max(0, (playerSpecialAdvantages[pName]?.[advType] || 1) - 1)
+        }
+      };
+      setPlayerSpecialAdvantages(updatedSpecials);
+      syncTournamentInventories(playerRepescas, playerRepeats, updatedSpecials);
+
+      setModalType('result_message_static');
+      setModalData({ message: `Comodín ${category}: ${legendName} añadido a ${team.name}` });
+    } else {
+      completeOptionSpin(`Comodín ${category}: ${legendName}`, spinLog);
+    }
   };
 
   // --- SUB-WHEELS AND SIGNINGS RESOLUTION ---
-  const handleSubWheelFinished = (subTeamName) => {
+  const handleSubWheelFinishedWrapper = (subTeamName) => {
+    setPendingSubSpinResult({
+      type: 'sub_team',
+      value: subTeamName,
+      owner: modalData.team?.owner,
+      modalData: modalData
+    });
+  };
+
+  const confirmSubWheelFinished = (subTeamName, mData) => {
     setModalType('fichar_manual');
     setModalData({
-      ...modalData,
+      ...mData,
       subTeam: subTeamName,
       title: `Fichaje de ${subTeamName}`
     });
+    setPendingSubSpinResult(null);
   };
 
   const openManualSigningModal = (title, posTag, spinLog, team) => {
@@ -756,11 +989,32 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
       };
     });
 
+    const syncedAdvantages = {
+      ...tournament.advantages,
+      inventories: {}
+    };
+    tournament.human_players.forEach(p => {
+      syncedAdvantages.inventories[p.name] = {
+        repescas: playerRepescas[p.name] || 0,
+        repeats: playerRepeats[p.name] || 0,
+        comodinOro: playerSpecialAdvantages[p.name]?.comodinOro || 0,
+        comodinDiamante: playerSpecialAdvantages[p.name]?.comodinDiamante || 0,
+        ruletaOro: playerSpecialAdvantages[p.name]?.ruletaOro || 0,
+        ruletaDiamante: playerSpecialAdvantages[p.name]?.ruletaDiamante || 0
+      };
+    });
+
+    if (!syncedAdvantages.wildcards) syncedAdvantages.wildcards = {};
+    tournament.human_players.forEach(p => {
+      syncedAdvantages.wildcards[p.name] = playerRepescas[p.name] || 1;
+    });
+
     const updatedTournament = {
       ...tournament,
       status: 'Fase de Grupos',
       teams: updatedTeams,
-      repescas: playerRepescas, // Persist Repesca tokens remaining
+      advantages: syncedAdvantages,
+      repescas: playerRepescas,
       matches: generateFixtures(groups)
     };
     
@@ -784,10 +1038,35 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
       message: "¿Deseas salir al menú principal? Se guardará el progreso actual del draft en el servidor para que puedas reanudarlo después.",
       onConfirm: async () => {
         try {
+          const syncedAdvantages = {
+            ...tournament.advantages,
+            inventories: {}
+          };
+          tournament.human_players.forEach(p => {
+            syncedAdvantages.inventories[p.name] = {
+              repescas: playerRepescas[p.name] || 0,
+              repeats: playerRepeats[p.name] || 0,
+              comodinOro: playerSpecialAdvantages[p.name]?.comodinOro || 0,
+              comodinDiamante: playerSpecialAdvantages[p.name]?.comodinDiamante || 0,
+              ruletaOro: playerSpecialAdvantages[p.name]?.ruletaOro || 0,
+              ruletaDiamante: playerSpecialAdvantages[p.name]?.ruletaDiamante || 0
+            };
+          });
+
+          if (!syncedAdvantages.wildcards) syncedAdvantages.wildcards = {};
+          tournament.human_players.forEach(p => {
+            syncedAdvantages.wildcards[p.name] = playerRepescas[p.name] || 1;
+          });
+
+          const tournamentToSave = {
+            ...tournament,
+            advantages: syncedAdvantages
+          };
+
           const res = await fetch(`http://localhost:5000/api/tournaments/${tournament.filename}/save`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(tournament)
+            body: JSON.stringify(tournamentToSave)
           });
           if (!res.ok) throw new Error('No se pudo guardar el estado actual de la liga.');
         } catch (err) {
@@ -815,6 +1094,97 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
         }
       }
     });
+  };
+
+  const renderAdvantagesPanel = () => {
+    return (
+      <div 
+        className="bg-panelBg/90 border border-panelBorder rounded-2xl p-5 shadow-xl font-mono text-xs w-full"
+        style={{ background: 'linear-gradient(135deg, rgba(11,20,38,0.9) 0%, rgba(6,10,18,0.95) 100%)' }}
+      >
+        <div className="flex justify-between items-center border-b border-panelBorder/30 pb-3 mb-4">
+          <span className="text-[10px] text-neonCyan font-bold tracking-widest uppercase">🎒 Inventario de Ventajas</span>
+          <span className="text-[9px] text-gray-500">Haz clic en comodines o giros de ruleta especiales para aplicarlos a tus equipos</span>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {tournament.human_players.map(p => {
+            const reps = playerRepescas[p.name] || 0;
+            const repeats = playerRepeats[p.name] || 0;
+            const spec = playerSpecialAdvantages[p.name] || { comodinOro: 0, comodinDiamante: 0, ruletaOro: 0, ruletaDiamante: 0 };
+            
+            const hasSpecials = spec.comodinOro > 0 || spec.comodinDiamante > 0 || spec.ruletaOro > 0 || spec.ruletaDiamante > 0;
+            const isChampOwner = tournament.advantages?.prevChampOwner === p.name;
+            
+            return (
+              <div key={p.name} className="p-3 bg-darkBg/60 border border-panelBorder/60 rounded-xl flex flex-col gap-2.5">
+                <div className="flex justify-between items-center border-b border-panelBorder/20 pb-1.5">
+                  <span className="font-extrabold text-white text-sm">{p.name}</span>
+                  {isChampOwner && (
+                    <span className="text-[8px] bg-neonGold/10 border border-neonGold/30 text-neonGold px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">🏆 Campeón</span>
+                  )}
+                </div>
+                
+                <div className="flex flex-col gap-1.5 text-[10px]">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">🛡️ Fichas de Repesca:</span>
+                    <span className="text-neonCyan font-bold text-sm">x{reps}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">🔄 Repetir Tiradas:</span>
+                    <span className="text-emerald-400 font-bold text-sm">x{repeats}</span>
+                  </div>
+                </div>
+                
+                {hasSpecials && (
+                  <div className="flex flex-col gap-1.5 border-t border-panelBorder/20 pt-2">
+                    <span className="text-[8px] text-neonGold font-bold tracking-wider uppercase mb-0.5">Ventajas de Ruleta de Campeones:</span>
+                    <div className="flex flex-col gap-1.5">
+                      {spec.comodinOro > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleUseSpecialAdvantage(p.name, 'comodinOro')}
+                          className="w-full py-1.5 rounded bg-amber-500/10 border border-amber-500/30 text-[9px] text-amber-300 font-bold hover:bg-amber-500/20 hover:text-white transition-all uppercase tracking-wider"
+                        >
+                          🌟 Usar Comodín Oro ({spec.comodinOro})
+                        </button>
+                      )}
+                      {spec.comodinDiamante > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleUseSpecialAdvantage(p.name, 'comodinDiamante')}
+                          className="w-full py-1.5 rounded bg-cyan-500/10 border border-cyan-500/30 text-[9px] text-cyan-300 font-bold hover:bg-cyan-500/20 hover:text-white transition-all uppercase tracking-wider"
+                        >
+                          💎 Usar Comodín Diamante ({spec.comodinDiamante})
+                        </button>
+                      )}
+                      {spec.ruletaOro > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleUseSpecialAdvantage(p.name, 'ruletaOro')}
+                          className="w-full py-1.5 rounded bg-amber-500/10 border border-amber-500/30 text-[9px] text-amber-300 font-bold hover:bg-amber-500/20 hover:text-white transition-all uppercase tracking-wider"
+                        >
+                          🎰 Tirar Ruleta Oro ({spec.ruletaOro})
+                        </button>
+                      )}
+                      {spec.ruletaDiamante > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleUseSpecialAdvantage(p.name, 'ruletaDiamante')}
+                          className="w-full py-1.5 rounded bg-cyan-500/10 border border-cyan-500/30 text-[9px] text-cyan-300 font-bold hover:bg-cyan-500/20 hover:text-white transition-all uppercase tracking-wider"
+                        >
+                          🎰 Tirar Ruleta Diamante ({spec.ruletaDiamante})
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -853,6 +1223,11 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* Advantages Inventory Panel */}
+      <div className="w-full max-w-5xl mb-6 z-10">
+        {renderAdvantagesPanel()}
       </div>
 
       {/* ================= PHASE 1: TEAMS SORTEO ================= */}
@@ -961,14 +1336,45 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
             </div>
           </div>
 
-          <div className="flex flex-col items-center justify-center">
-            <RouletteWheel
-              options={availableTeams}
-              onFinished={handleTeamDrawn}
-              buttonText="SORTEAR EQUIPO"
-              disabled={isProcessing}
-              onSpinStart={() => setIsProcessing(true)}
-            />
+          <div className="flex flex-col items-center justify-center w-full max-w-md">
+            {pendingSpinResult && pendingSpinResult.type === 'team' ? (
+              <div 
+                className="bg-panelBg border border-neonCyan p-8 rounded-2xl w-full text-center shadow-2xl animate-scale-up"
+                style={{ boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)' }}
+              >
+                <span className="text-[10px] text-gray-500 font-mono tracking-widest uppercase block mb-1">Equipo obtenido</span>
+                <h4 className="text-3xl font-black text-neonCyan tracking-tight uppercase mb-8 drop-shadow-[0_0_5px_rgba(0,240,255,0.4)]">
+                  {pendingSpinResult.value}
+                </h4>
+                
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={() => confirmTeamDrawn(pendingSpinResult.value)}
+                    className="w-full py-3.5 rounded-xl font-black text-sm tracking-wider bg-gradient-to-r from-neonCyan to-cyan-500 text-darkBg shadow-neonCyan hover:brightness-105 active:scale-95 transition-all uppercase"
+                  >
+                    ✅ Confirmar y Continuar
+                  </button>
+                  
+                  {(playerRepeats[pendingSpinResult.owner] || 0) > 0 && (
+                    <button
+                      onClick={handleUseRepeatSpin}
+                      className="w-full py-3 rounded-xl font-bold bg-darkBg border border-emerald-500 text-emerald-400 hover:bg-emerald-950/20 hover:text-white transition-all uppercase text-xs tracking-wider flex items-center justify-center gap-1.5"
+                    >
+                      🔄 Repetir Tirada ({playerRepeats[pendingSpinResult.owner]} disponibles)
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <RouletteWheel
+                key={wheelKey}
+                options={availableTeams}
+                onFinished={handleTeamDrawn}
+                buttonText="SORTEAR EQUIPO"
+                disabled={isProcessing}
+                onSpinStart={() => setIsProcessing(true)}
+              />
+            )}
           </div>
         </div>
       )}
@@ -1017,14 +1423,45 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
             </div>
           </div>
 
-          <div className="flex flex-col items-center justify-center">
-            <RouletteWheel
-              options={availableDiamonds}
-              onFinished={handleCaptainDrawn}
-              buttonText="GIRAR DIAMANTE"
-              disabled={isProcessing}
-              onSpinStart={() => setIsProcessing(true)}
-            />
+          <div className="flex flex-col items-center justify-center w-full max-w-md">
+            {pendingSpinResult && pendingSpinResult.type === 'captain' ? (
+              <div 
+                className="bg-panelBg border border-neonCyan p-8 rounded-2xl w-full text-center shadow-2xl animate-scale-up"
+                style={{ boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)' }}
+              >
+                <span className="text-[10px] text-gray-500 font-mono tracking-widest block">Capitán obtenido</span>
+                <h4 className="text-3xl font-black text-neonCyan tracking-tight uppercase mb-8 drop-shadow-[0_0_5px_rgba(0,240,255,0.4)]">
+                  {pendingSpinResult.value}
+                </h4>
+                
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={() => confirmCaptainDrawn(pendingSpinResult.value)}
+                    className="w-full py-3.5 rounded-xl font-black text-sm tracking-wider bg-gradient-to-r from-neonCyan to-cyan-500 text-darkBg shadow-neonCyan hover:brightness-105 active:scale-95 transition-all uppercase"
+                  >
+                    ✅ Confirmar y Continuar
+                  </button>
+                  
+                  {(playerRepeats[pendingSpinResult.owner] || 0) > 0 && (
+                    <button
+                      onClick={handleUseRepeatSpin}
+                      className="w-full py-3 rounded-xl font-bold bg-darkBg border border-emerald-500 text-emerald-400 hover:bg-emerald-950/20 hover:text-white transition-all uppercase text-xs tracking-wider flex items-center justify-center gap-1.5"
+                    >
+                      🔄 Repetir Tirada ({playerRepeats[pendingSpinResult.owner]} disponibles)
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <RouletteWheel
+                key={wheelKey}
+                options={availableDiamonds}
+                onFinished={handleCaptainDrawn}
+                buttonText="GIRAR DIAMANTE"
+                disabled={isProcessing}
+                onSpinStart={() => setIsProcessing(true)}
+              />
+            )}
           </div>
         </div>
       )}
@@ -1071,14 +1508,45 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
             </div>
           </div>
 
-          <div className="flex flex-col items-center justify-center">
-            <RouletteWheel
-              options={constants.options_roulette}
-              onFinished={handleOptionDrawn}
-              buttonText="GIRAR OPCIONES"
-              disabled={isProcessing}
-              onSpinStart={() => setIsProcessing(true)}
-            />
+          <div className="flex flex-col items-center justify-center w-full max-w-md">
+            {pendingSpinResult && pendingSpinResult.type === 'option' ? (
+              <div 
+                className="bg-panelBg border border-neonGold p-8 rounded-2xl w-full text-center shadow-2xl animate-scale-up"
+                style={{ boxShadow: '0 0 20px rgba(255, 215, 0, 0.15)' }}
+              >
+                <span className="text-[10px] text-gray-500 font-mono tracking-widest uppercase block mb-1">Opción obtenida</span>
+                <h4 className="text-2xl font-black text-neonGold tracking-tight uppercase mb-8 drop-shadow-[0_0_5px_rgba(255,215,0,0.4)]">
+                  {pendingSpinResult.value}
+                </h4>
+                
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={() => confirmOptionDrawn(pendingSpinResult.value)}
+                    className="w-full py-3.5 rounded-xl font-black text-sm tracking-wider bg-gradient-to-r from-neonGold to-amber-500 text-darkBg shadow-neonGold hover:brightness-105 active:scale-95 transition-all uppercase"
+                  >
+                    ✅ Confirmar y Aplicar
+                  </button>
+                  
+                  {(playerRepeats[pendingSpinResult.owner] || 0) > 0 && (
+                    <button
+                      onClick={handleUseRepeatSpin}
+                      className="w-full py-3 rounded-xl font-bold bg-darkBg border border-emerald-500 text-emerald-400 hover:bg-emerald-950/20 hover:text-white transition-all uppercase text-xs tracking-wider flex items-center justify-center gap-1.5"
+                    >
+                      🔄 Repetir Tirada ({playerRepeats[pendingSpinResult.owner]} disponibles)
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <RouletteWheel
+                key={wheelKey}
+                options={constants.options_roulette}
+                onFinished={handleOptionDrawn}
+                buttonText="GIRAR OPCIONES"
+                disabled={isProcessing}
+                onSpinStart={() => setIsProcessing(true)}
+              />
+            )}
           </div>
         </div>
       )}
@@ -1307,12 +1775,40 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
               {modalType === 'sub_wheel_5' ? 'RULETA EQUIPO 5 ESTRELLAS' : 'RULETA EQUIPO 4.5 ESTRELLAS'}
             </h3>
             
-            <RouletteWheel
-              options={modalData.options}
-              onFinished={handleSubWheelFinished}
-              buttonText="GIRAR SUB-RULETA"
-              onSpinStart={() => {}}
-            />
+            {pendingSubSpinResult && pendingSubSpinResult.type === 'sub_team' ? (
+              <div className="flex flex-col items-center py-6 text-center animate-scale-up w-full">
+                <span className="text-[10px] text-gray-500 font-mono tracking-widest uppercase block mb-1">Equipo obtenido</span>
+                <h4 className="text-2xl font-black text-neonCyan tracking-tight uppercase mb-6 drop-shadow-[0_0_5px_rgba(0,240,255,0.4)]">
+                  {pendingSubSpinResult.value}
+                </h4>
+                
+                <div className="flex flex-col gap-3 w-full">
+                  <button
+                    onClick={() => confirmSubWheelFinished(pendingSubSpinResult.value, pendingSubSpinResult.modalData)}
+                    className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-neonCyan to-cyan-500 text-darkBg shadow-neonCyan hover:scale-102 transition-all uppercase text-xs tracking-wider"
+                  >
+                    ✅ Confirmar Elección
+                  </button>
+                  
+                  {(playerRepeats[pendingSubSpinResult.owner] || 0) > 0 && (
+                    <button
+                      onClick={handleUseRepeatSubSpin}
+                      className="w-full py-3 rounded-xl font-bold bg-darkBg border border-emerald-500 text-emerald-400 hover:bg-emerald-950/20 hover:text-white transition-all uppercase text-xs tracking-wider flex items-center justify-center gap-1.5"
+                    >
+                      🔄 Repetir Tirada ({playerRepeats[pendingSubSpinResult.owner]} disponibles)
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <RouletteWheel
+                key={subWheelKey}
+                options={modalData.options}
+                onFinished={handleSubWheelFinishedWrapper}
+                buttonText="GIRAR SUB-RULETA"
+                onSpinStart={() => {}}
+              />
+            )}
           </div>
         </div>
       )}
@@ -1325,12 +1821,40 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
               RULETA LEYENDA {modalData.category}
             </h3>
             
-            <RouletteWheel
-              options={modalData.options}
-              onFinished={handleSubLegendFinished}
-              buttonText={`GIRAR ${modalData.category.toUpperCase()}`}
-              onSpinStart={() => {}}
-            />
+            {pendingSubSpinResult && pendingSubSpinResult.type === 'sub_legend' ? (
+              <div className="flex flex-col items-center py-6 text-center animate-scale-up w-full">
+                <span className="text-[10px] text-gray-500 font-mono tracking-widest uppercase block mb-1">Leyenda obtenida</span>
+                <h4 className="text-2xl font-black text-neonCyan tracking-tight uppercase mb-6 drop-shadow-[0_0_5px_rgba(0,240,255,0.4)]">
+                  {pendingSubSpinResult.value}
+                </h4>
+                
+                <div className="flex flex-col gap-3 w-full">
+                  <button
+                    onClick={() => confirmSubLegendFinished(pendingSubSpinResult.value, pendingSubSpinResult.modalData)}
+                    className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-neonCyan to-cyan-500 text-darkBg shadow-neonCyan hover:scale-102 transition-all uppercase text-xs tracking-wider"
+                  >
+                    ✅ Confirmar Elección
+                  </button>
+                  
+                  {(playerRepeats[pendingSubSpinResult.owner] || 0) > 0 && (
+                    <button
+                      onClick={handleUseRepeatSubSpin}
+                      className="w-full py-3 rounded-xl font-bold bg-darkBg border border-emerald-500 text-emerald-400 hover:bg-emerald-950/20 hover:text-white transition-all uppercase text-xs tracking-wider flex items-center justify-center gap-1.5"
+                    >
+                      🔄 Repetir Tirada ({playerRepeats[pendingSubSpinResult.owner]} disponibles)
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <RouletteWheel
+                key={subWheelKey}
+                options={modalData.options}
+                onFinished={handleSubLegendFinishedWrapper}
+                buttonText={`GIRAR ${modalData.category?.toUpperCase()}`}
+                onSpinStart={() => {}}
+              />
+            )}
           </div>
         </div>
       )}
@@ -1539,6 +2063,61 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                 Confirmar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* SELECT TEAM FOR ADVANTAGE MODAL */}
+      {modalType === 'select_team_for_advantage' && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/85 backdrop-blur-sm z-50 p-4">
+          <div className="bg-panelBg border border-panelBorder rounded-2xl max-w-sm w-full p-6 shadow-2xl animate-scale-up border-t-4 border-t-neonCyan">
+            <h3 className="text-lg font-black text-white font-mono mb-2 uppercase flex items-center gap-2">
+              ⚽ Seleccionar Equipo
+            </h3>
+            <p className="text-gray-300 text-xs leading-relaxed mb-4">
+              Selecciona el equipo al que deseas asignar la ventaja especial de <strong>{modalData.playerName}</strong>:
+            </p>
+            <div className="space-y-2">
+              {modalData.teams.map(t => (
+                <button
+                  key={t.name}
+                  type="button"
+                  onClick={() => {
+                    setModalType(null);
+                    executeSpecialAdvantage(modalData.playerName, modalData.type, t);
+                  }}
+                  className="w-full p-3 bg-darkBg border border-panelBorder rounded-lg text-xs font-mono font-bold text-left hover:border-neonCyan hover:bg-neonCyan/5 transition-all text-white flex justify-between"
+                >
+                  <span>{t.name}</span>
+                  <span className="text-[10px] text-gray-500 uppercase">{t.owner}</span>
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setModalType(null)}
+              className="mt-4 w-full py-2 bg-panelBorder rounded-lg text-[10px] text-gray-400 hover:text-white uppercase font-mono transition-colors"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* STATIC RESULT MESSAGE BANNER FOR SPECIAL ADVANTAGES */}
+      {modalType === 'result_message_static' && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/85 backdrop-blur-sm z-50 p-4">
+          <div className="bg-panelBg border border-panelBorder rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center animate-scale-up border-t-4 border-t-neonGold">
+            <span className="text-[10px] text-gray-500 font-mono tracking-widest uppercase block mb-1">Ventaja Aplicada</span>
+            <h4 className="text-xl font-black text-neonGold tracking-tight uppercase mb-6">
+              {modalData.message}
+            </h4>
+            
+            <button
+              onClick={() => setModalType(null)}
+              className="w-full py-3 bg-panelBorder rounded-xl font-bold hover:bg-gray-800 text-xs tracking-wider transition-all uppercase font-mono"
+            >
+              Aceptar y Cerrar
+            </button>
           </div>
         </div>
       )}

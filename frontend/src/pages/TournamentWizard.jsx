@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import sounds from '../utils/audio';
+import ChampionsRouletteModal from '../components/ChampionsRouletteModal';
 
 const TournamentWizard = ({ onCreated, onBack }) => {
   const [step, setStep] = useState(1);
@@ -11,6 +12,22 @@ const TournamentWizard = ({ onCreated, onBack }) => {
   const [playerNames, setPlayerNames] = useState(['Elias', 'Alvaro']);
   const [formatType, setFormatType] = useState('16 equipos');
   const [teamsPerPlayer, setTeamsPerPlayer] = useState(8);
+  const [isCalculatedPulse, setIsCalculatedPulse] = useState(false);
+
+  // Auto-calculate teams per player when format or players change
+  useEffect(() => {
+    if (formatType !== 'Personalizado') {
+      const totalTeams = parseInt(formatType) || 16;
+      const calculated = Math.floor(totalTeams / numPlayers);
+      const nextVal = Math.max(1, calculated);
+      if (nextVal !== teamsPerPlayer) {
+        setTeamsPerPlayer(nextVal);
+        setIsCalculatedPulse(true);
+        const timer = setTimeout(() => setIsCalculatedPulse(false), 800);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [formatType, numPlayers]);
 
   // Step 2 State: Previous Champion
   const [hasPrevChampion, setHasPrevChampion] = useState(false);
@@ -20,6 +37,15 @@ const TournamentWizard = ({ onCreated, onBack }) => {
   const [retainedPlayers, setRetainedPlayers] = useState('');
   const [prevBenefits, setPrevBenefits] = useState('');
 
+  // Clear roulette result if the champion team changes
+  useEffect(() => {
+    setChampionsRouletteResult('');
+  }, [prevChampTeam]);
+
+  // Champions Roulette
+  const [showChampionsRoulette, setShowChampionsRoulette] = useState(false);
+  const [championsRouletteResult, setChampionsRouletteResult] = useState('');
+
   // Fetch constants for dropdown selections
   useEffect(() => {
     fetch('http://localhost:5000/api/constants')
@@ -27,8 +53,12 @@ const TournamentWizard = ({ onCreated, onBack }) => {
       .then(data => {
         const teams = data.teams || [];
         const diamond = data.diamond_legends || [];
-        setConstants({ teams, diamond_legends: diamond });
-        if (teams.length > 0) setPrevChampTeam(teams[0]);
+        
+        // Sort teams alphabetically (A-Z)
+        const sortedTeams = [...teams].sort((a, b) => a.localeCompare(b));
+        
+        setConstants({ teams: sortedTeams, diamond_legends: diamond });
+        if (sortedTeams.length > 0) setPrevChampTeam(sortedTeams[0]);
         if (diamond.length > 0) setPrevCaptain(diamond[0]);
       })
       .catch(err => console.error('Error fetching constants:', err));
@@ -102,16 +132,64 @@ const TournamentWizard = ({ onCreated, onBack }) => {
   const computeFinalWildcards = () => {
     const counts = {};
     playerNames.forEach(p => {
-      // 1 Base wildcard + manual adjustments + bonuses
+      // Base wildcard + manual adjustments + assistant bonus
       let total = manualWildcards[p] || 1;
-      
-      if (wildcardBonuses.topScorer === p) total += 1;
-      if (wildcardBonuses.topAssistant === p) total += 1;
-      if (wildcardBonuses.bestGoal === p) total += 1;
-      
+      if (hasPrevChampion && wildcardBonuses.topAssistant === p) {
+        total += 1;
+      }
       counts[p] = total;
     });
     return counts;
+  };
+
+  // Build final inventories for each player
+  const computeFinalInventories = () => {
+    const inventories = {};
+    playerNames.forEach(p => {
+      let repescas = manualWildcards[p] || 1;
+      let repeats = 0;
+      let comodinOro = 0;
+      let comodinDiamante = 0;
+      let ruletaOro = 0;
+      let ruletaDiamante = 0;
+
+      if (hasPrevChampion) {
+        // Mejor Gol -> +1 Repeat Spin
+        if (wildcardBonuses.bestGoal === p) {
+          repeats += 1;
+        }
+        // Máximo Goleador -> +1 Repeat Spin
+        if (wildcardBonuses.topScorer === p) {
+          repeats += 1;
+        }
+        // Máximo Asistente -> +1 Repesca
+        if (wildcardBonuses.topAssistant === p) {
+          repescas += 1;
+        }
+        // Ruleta de Campeones -> champion gets the won item
+        if (prevChampOwner === p && championsRouletteResult) {
+          if (championsRouletteResult === 'Comodín Oro') {
+            comodinOro += 1;
+          } else if (championsRouletteResult === 'Comodín Diamante') {
+            comodinDiamante += 1;
+          } else if (championsRouletteResult === 'Tirar Ruleta Oro') {
+            ruletaOro += 1;
+          } else if (championsRouletteResult === 'Tirar Ruleta Diamante') {
+            ruletaDiamante += 1;
+          }
+        }
+      }
+
+      inventories[p] = {
+        repescas,
+        repeats,
+        comodinOro,
+        comodinDiamante,
+        ruletaOro,
+        ruletaDiamante
+      };
+    });
+    return inventories;
   };
 
   // Submit and create tournament in backend
@@ -119,6 +197,7 @@ const TournamentWizard = ({ onCreated, onBack }) => {
     sounds.playSuccess();
     
     const finalWildcards = computeFinalWildcards();
+    const finalInventories = computeFinalInventories();
     
     // Prepare initial data mapping for creation
     const configData = {
@@ -132,8 +211,11 @@ const TournamentWizard = ({ onCreated, onBack }) => {
         prevChampOwner: hasPrevChampion ? prevChampOwner : null,
         prevCaptain: hasPrevChampion ? prevCaptain : null,
         retainedPlayers: hasPrevChampion ? retainedPlayers.split(',').map(s => s.trim()).filter(Boolean) : [],
-        prevBenefits: hasPrevChampion ? prevBenefits : null,
-        wildcards: finalWildcards
+        prevBenefits: hasPrevChampion ? championsRouletteResult : null,
+        championsRouletteResult: hasPrevChampion ? championsRouletteResult : null,
+        wildcardBonuses: hasPrevChampion ? wildcardBonuses : { topScorer: '', topAssistant: '', bestGoal: '' },
+        wildcards: finalWildcards,
+        inventories: finalInventories
       }
     };
 
@@ -220,7 +302,11 @@ const TournamentWizard = ({ onCreated, onBack }) => {
                   min="1"
                   value={teamsPerPlayer}
                   onChange={(e) => setTeamsPerPlayer(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="bg-darkBg border border-panelBorder p-3 rounded-lg text-sm text-white focus:outline-none focus:border-neonCyan font-semibold"
+                  className={`bg-darkBg border p-3 rounded-lg text-sm text-white focus:outline-none font-semibold transition-all duration-300 ${
+                    isCalculatedPulse
+                      ? 'border-neonCyan shadow-[0_0_15px_rgba(0,243,255,0.6)] scale-[1.03]'
+                      : 'border-panelBorder focus:border-neonCyan'
+                  }`}
                 />
               </div>
             </div>
@@ -276,7 +362,18 @@ const TournamentWizard = ({ onCreated, onBack }) => {
                 <span className="text-xs text-gray-500 mt-0.5">Activa para arrastrar ventajas y fichajes.</span>
               </div>
               <button
-                onClick={() => setHasPrevChampion(!hasPrevChampion)}
+                onClick={() => {
+                  const nextVal = !hasPrevChampion;
+                  setHasPrevChampion(nextVal);
+                  if (!nextVal) {
+                    setChampionsRouletteResult('');
+                    setWildcardBonuses({
+                      topScorer: '',
+                      topAssistant: '',
+                      bestGoal: ''
+                    });
+                  }
+                }}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${
                   hasPrevChampion ? 'bg-neonCyan' : 'bg-gray-700'
                 }`}
@@ -349,16 +446,37 @@ const TournamentWizard = ({ onCreated, onBack }) => {
                   </span>
                 </div>
 
-                {/* Benefits */}
-                <div className="flex flex-col">
-                  <label className="text-xs text-gray-400 font-mono mb-1.5">BENEFICIOS ESPECIALES</label>
-                  <input
-                    type="text"
-                    value={prevBenefits}
-                    onChange={(e) => setPrevBenefits(e.target.value)}
-                    className="bg-darkBg border border-panelBorder p-2.5 rounded-lg text-sm text-white focus:outline-none focus:border-neonCyan text-xs"
-                    placeholder="Ej: +1 comodín de oro adicional"
-                  />
+                {/* Ruleta de Campeones */}
+                <div className="flex flex-col bg-darkBg/30 border border-panelBorder p-4 rounded-xl">
+                  <label className="text-xs text-neonGold font-mono font-bold tracking-wider mb-2 uppercase">🎰 Ruleta de Campeones</label>
+                  {!championsRouletteResult ? (
+                    <div>
+                      <p className="text-xs text-gray-400 leading-relaxed mb-3 font-mono">
+                        El campeón tiene derecho a un giro en la Ruleta de Campeones para obtener una ventaja especial.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShowChampionsRoulette(true)}
+                        className="w-full py-2.5 rounded-xl font-bold bg-gradient-to-r from-neonGold to-amber-500 text-darkBg shadow-neonGold hover:brightness-105 active:scale-95 transition-all text-xs tracking-wider uppercase font-mono"
+                      >
+                        Girar Ruleta de Campeones
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between bg-panelBg/60 border border-neonGold/30 p-3 rounded-lg animate-scale-up">
+                      <div>
+                        <span className="text-[10px] text-gray-500 font-mono uppercase block">Ventaja obtenida</span>
+                        <span className="text-sm font-extrabold text-neonGold font-mono">{championsRouletteResult}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowChampionsRoulette(true)}
+                        className="px-3 py-1.5 rounded-lg border border-neonGold/40 text-[10px] text-neonGold hover:bg-neonGold/10 transition-all font-mono uppercase font-bold"
+                      >
+                        Girar de nuevo
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -386,114 +504,143 @@ const TournamentWizard = ({ onCreated, onBack }) => {
           <div className="space-y-5">
             <p className="text-xs text-gray-400 leading-relaxed font-mono">
               Todos los participantes empiezan con <span className="text-neonCyan font-bold">1 Ficha de Repesca base</span>. 
-              Asigna los logros del torneo anterior para otorgar Fichas de Repesca extra (+1 por logro).
+              {hasPrevChampion ? " Asigna los logros del torneo anterior para otorgar Fichas de Repesca extra y Repeticiones de tirada." : ""}
             </p>
 
             {/* Bonuses configuration */}
-            <div className="space-y-3">
-              {/* Max Scorer */}
-              <div className="flex items-center justify-between p-3 bg-darkBg/60 border border-panelBorder rounded-xl">
-                <div>
-                  <span className="text-xs font-bold text-neonGold block">⚽ MÁXIMO GOLEADOR (+1)</span>
-                  <span className="text-[10px] text-gray-500 font-mono mt-0.5">El participante con más goles</span>
+            {hasPrevChampion && (
+              <div className="space-y-3">
+                <h4 className="text-xs text-neonCyan font-mono tracking-wider uppercase mb-1 font-bold">Premios de la Edición Pasada</h4>
+                
+                {/* Max Scorer */}
+                <div className="flex items-center justify-between p-3 bg-darkBg/60 border border-panelBorder rounded-xl">
+                  <div>
+                    <span className="text-xs font-bold text-neonGold block">⚽ MÁXIMO GOLEADOR (+1 Repetir Tirada)</span>
+                    <span className="text-[10px] text-gray-500 font-mono mt-0.5">Otorga 1 ficha para repetir cualquier giro</span>
+                  </div>
+                  <select
+                    value={wildcardBonuses.topScorer}
+                    onChange={(e) => setWildcardBonuses({ ...wildcardBonuses, topScorer: e.target.value })}
+                    className="bg-darkBg border border-panelBorder p-2 rounded text-xs text-white focus:outline-none"
+                  >
+                    <option value="">Nadie</option>
+                    {playerNames.map(p => (
+                      <option key={p} value={p}>{p}</option>
+                    ))}
+                  </select>
                 </div>
-                <select
-                  value={wildcardBonuses.topScorer}
-                  onChange={(e) => setWildcardBonuses({ ...wildcardBonuses, topScorer: e.target.value })}
-                  className="bg-darkBg border border-panelBorder p-2 rounded text-xs text-white focus:outline-none"
-                >
-                  <option value="">Nadie</option>
-                  {playerNames.map(p => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
-              </div>
 
-              {/* Max Assistant */}
-              <div className="flex items-center justify-between p-3 bg-darkBg/60 border border-panelBorder rounded-xl">
-                <div>
-                  <span className="text-xs font-bold text-neonSilver block">👟 MÁXIMO ASISTENTE (+1)</span>
-                  <span className="text-[10px] text-gray-500 font-mono mt-0.5">El participante con más asistencias</span>
+                {/* Max Assistant */}
+                <div className="flex items-center justify-between p-3 bg-darkBg/60 border border-panelBorder rounded-xl">
+                  <div>
+                    <span className="text-xs font-bold text-neonSilver block">👟 MÁXIMO ASISTENTE (+1 Repesca)</span>
+                    <span className="text-[10px] text-gray-500 font-mono mt-0.5">Otorga 1 Ficha de Repesca extra</span>
+                  </div>
+                  <select
+                    value={wildcardBonuses.topAssistant}
+                    onChange={(e) => setWildcardBonuses({ ...wildcardBonuses, topAssistant: e.target.value })}
+                    className="bg-darkBg border border-panelBorder p-2 rounded text-xs text-white focus:outline-none"
+                  >
+                    <option value="">Nadie</option>
+                    {playerNames.map(p => (
+                      <option key={p} value={p}>{p}</option>
+                    ))}
+                  </select>
                 </div>
-                <select
-                  value={wildcardBonuses.topAssistant}
-                  onChange={(e) => setWildcardBonuses({ ...wildcardBonuses, topAssistant: e.target.value })}
-                  className="bg-darkBg border border-panelBorder p-2 rounded text-xs text-white focus:outline-none"
-                >
-                  <option value="">Nadie</option>
-                  {playerNames.map(p => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
-              </div>
 
-              {/* Best Goal */}
-              <div className="flex items-center justify-between p-3 bg-darkBg/60 border border-panelBorder rounded-xl">
-                <div>
-                  <span className="text-xs font-bold text-neonBronze block">🔥 MEJOR GOL DEL TORNEO (+1)</span>
-                  <span className="text-[10px] text-gray-500 font-mono mt-0.5">El gol más espectacular</span>
+                {/* Best Goal */}
+                <div className="flex items-center justify-between p-3 bg-darkBg/60 border border-panelBorder rounded-xl">
+                  <div>
+                    <span className="text-xs font-bold text-neonBronze block">🔥 MEJOR GOL DEL TORNEO (+1 Repetir Tirada)</span>
+                    <span className="text-[10px] text-gray-500 font-mono mt-0.5">Otorga 1 ficha para repetir cualquier giro</span>
+                  </div>
+                  <select
+                    value={wildcardBonuses.bestGoal}
+                    onChange={(e) => setWildcardBonuses({ ...wildcardBonuses, bestGoal: e.target.value })}
+                    className="bg-darkBg border border-panelBorder p-2 rounded text-xs text-white focus:outline-none"
+                  >
+                    <option value="">Nadie</option>
+                    {playerNames.map(p => (
+                      <option key={p} value={p}>{p}</option>
+                    ))}
+                  </select>
                 </div>
-                <select
-                  value={wildcardBonuses.bestGoal}
-                  onChange={(e) => setWildcardBonuses({ ...wildcardBonuses, bestGoal: e.target.value })}
-                  className="bg-darkBg border border-panelBorder p-2 rounded text-xs text-white focus:outline-none"
-                >
-                  <option value="">Nadie</option>
-                  {playerNames.map(p => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
               </div>
-            </div>
+            )}
 
             {/* Total Wildcards/Repescas Recap (Manual Adjustments) */}
             <div className="border-t border-panelBorder pt-4 mt-6">
-              <label className="text-xs text-gray-400 font-mono block mb-3">RECAPITULACIÓN Y REPESCAS FINALES</label>
+              <label className="text-xs text-gray-400 font-mono block mb-3">RECAPITULACIÓN DE VENTAJAS Y INVENTARIOS</label>
               
               <div className="space-y-3">
                 {playerNames.map(p => {
                   // Compute live totals
-                  let base = manualWildcards[p] || 1;
-                  let bonus = 0;
-                  if (wildcardBonuses.topScorer === p) bonus += 1;
-                  if (wildcardBonuses.topAssistant === p) bonus += 1;
-                  if (wildcardBonuses.bestGoal === p) bonus += 1;
-                  const total = base + bonus;
+                  let baseRepescas = manualWildcards[p] || 1;
+                  let extraRepescas = (hasPrevChampion && wildcardBonuses.topAssistant === p) ? 1 : 0;
+                  let totalRepescas = baseRepescas + extraRepescas;
+
+                  let totalRepeats = 0;
+                  if (hasPrevChampion && wildcardBonuses.topScorer === p) totalRepeats += 1;
+                  if (hasPrevChampion && wildcardBonuses.bestGoal === p) totalRepeats += 1;
+
+                  let specialReward = '';
+                  if (hasPrevChampion && prevChampOwner === p && championsRouletteResult) {
+                    specialReward = championsRouletteResult;
+                  }
 
                   return (
-                    <div key={p} className="flex justify-between items-center p-3 bg-panelBg border border-panelBorder rounded-xl">
-                      <div className="flex flex-col">
-                        <span className="font-extrabold text-sm">{p}</span>
-                        <span className="text-[10px] text-gray-400 font-mono">Base: {base} | Logros: +{bonus}</span>
+                    <div key={p} className="flex flex-col p-4 bg-panelBg border border-panelBorder rounded-xl gap-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-extrabold text-sm text-white">{p}</span>
+                        
+                        {/* Controls to manually edit base wildcards */}
+                        <div className="flex items-center gap-3">
+                          <span className="text-[10px] text-gray-500 font-mono">Base Repescas:</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              sounds.playTick();
+                              setManualWildcards({
+                                ...manualWildcards,
+                                [p]: Math.max(0, baseRepescas - 1)
+                              });
+                            }}
+                            className="w-7 h-7 rounded-full border border-panelBorder flex items-center justify-center text-gray-400 hover:border-white hover:text-white"
+                          >
+                            -
+                          </button>
+                          <span className="w-5 text-center font-black font-mono text-neonCyan text-sm">{baseRepescas}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              sounds.playTick();
+                              setManualWildcards({
+                                ...manualWildcards,
+                                [p]: baseRepescas + 1
+                              });
+                            }}
+                            className="w-7 h-7 rounded-full border border-panelBorder flex items-center justify-center text-gray-400 hover:border-white hover:text-white"
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
-                      
-                      {/* Controls to manually edit base wildcards */}
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => {
-                            sounds.playTick();
-                            setManualWildcards({
-                              ...manualWildcards,
-                              [p]: Math.max(0, base - 1)
-                            });
-                          }}
-                          className="w-8 h-8 rounded-full border border-panelBorder flex items-center justify-center text-gray-400 hover:border-white hover:text-white"
-                        >
-                          -
-                        </button>
-                        <span className="w-6 text-center font-black font-mono text-neonCyan text-lg">{total}</span>
-                        <button
-                          onClick={() => {
-                            sounds.playTick();
-                            setManualWildcards({
-                              ...manualWildcards,
-                              [p]: base + 1
-                            });
-                          }}
-                          className="w-8 h-8 rounded-full border border-panelBorder flex items-center justify-center text-gray-400 hover:border-white hover:text-white"
-                        >
-                          +
-                        </button>
+
+                      {/* Display inventory badges */}
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        <span className="px-2.5 py-1 rounded-md bg-darkBg border border-panelBorder text-[10px] font-mono text-neonCyan font-bold flex items-center gap-1">
+                          🛡️ Repescas: {totalRepescas} {extraRepescas > 0 && `(Base: ${baseRepescas} + Logro: +1)`}
+                        </span>
+                        {totalRepeats > 0 && (
+                          <span className="px-2.5 py-1 rounded-md bg-darkBg border border-panelBorder text-[10px] font-mono text-emerald-400 font-bold flex items-center gap-1">
+                            🔄 Repetir Tirada: x{totalRepeats}
+                          </span>
+                        )}
+                        {specialReward && (
+                          <span className="px-2.5 py-1 rounded-md bg-darkBg/80 border border-neonGold/40 text-[10px] font-mono text-neonGold font-bold flex items-center gap-1 shadow-md shadow-neonGold/5">
+                            👑 Campeón: {specialReward}
+                          </span>
+                        )}
                       </div>
                     </div>
                   );
@@ -519,6 +666,26 @@ const TournamentWizard = ({ onCreated, onBack }) => {
           </div>
         )}
       </div>
+
+      {/* Champions Roulette Modal */}
+      {showChampionsRoulette && (
+        <ChampionsRouletteModal
+          prevChampTeam={prevChampTeam}
+          options={[
+            'Comodín Oro', 'Comodín Oro',
+            'Comodín Diamante',
+            'Tirar Ruleta Oro', 'Tirar Ruleta Oro', 'Tirar Ruleta Oro', 'Tirar Ruleta Oro',
+            'Tirar Ruleta Diamante', 'Tirar Ruleta Diamante', 'Tirar Ruleta Diamante', 'Tirar Ruleta Diamante'
+          ]}
+          onFinished={(result) => {
+            setChampionsRouletteResult(result);
+            setTimeout(() => {
+              setShowChampionsRoulette(false);
+            }, 1800);
+          }}
+          onClose={() => setShowChampionsRoulette(false)}
+        />
+      )}
     </div>
   );
 };
