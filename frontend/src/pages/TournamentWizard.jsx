@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import sounds from '../utils/audio';
 import ChampionsRouletteModal from '../components/ChampionsRouletteModal';
+import { getConstants, createTournament } from '../services/tournamentService';
 
 const TournamentWizard = ({ onCreated, onBack }) => {
   const [step, setStep] = useState(1);
@@ -46,22 +47,18 @@ const TournamentWizard = ({ onCreated, onBack }) => {
   const [showChampionsRoulette, setShowChampionsRoulette] = useState(false);
   const [championsRouletteResult, setChampionsRouletteResult] = useState('');
 
-  // Fetch constants for dropdown selections
+  // Load constants from static module
   useEffect(() => {
-    fetch('http://localhost:5000/api/constants')
-      .then(res => res.json())
-      .then(data => {
-        const teams = data.teams || [];
-        const diamond = data.diamond_legends || [];
-        
-        // Sort teams alphabetically (A-Z)
-        const sortedTeams = [...teams].sort((a, b) => a.localeCompare(b));
-        
-        setConstants({ teams: sortedTeams, diamond_legends: diamond });
-        if (sortedTeams.length > 0) setPrevChampTeam(sortedTeams[0]);
-        if (diamond.length > 0) setPrevCaptain(diamond[0]);
-      })
-      .catch(err => console.error('Error fetching constants:', err));
+    const data = getConstants();
+    const teams = data.teams || [];
+    const diamond = data.diamond_legends || [];
+    
+    // Sort teams alphabetically (A-Z)
+    const sortedTeams = [...teams].sort((a, b) => a.localeCompare(b));
+    
+    setConstants({ teams: sortedTeams, diamond_legends: diamond });
+    if (sortedTeams.length > 0) setPrevChampTeam(sortedTeams[0]);
+    if (diamond.length > 0) setPrevCaptain(diamond[0]);
   }, []);
 
   // Step 3 State: Wildcards (Comodines)
@@ -220,14 +217,7 @@ const TournamentWizard = ({ onCreated, onBack }) => {
     };
 
     try {
-      const res = await fetch('http://localhost:5000/api/tournaments/new', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(configData)
-      });
-      
-      if (!res.ok) throw new Error('Error al inicializar el torneo en el servidor.');
-      const data = await res.json();
+      const data = await createTournament(configData);
       
       // Pass the advantage/wildcard information along in the initialized structure
       data.advantages = configData.advantages;

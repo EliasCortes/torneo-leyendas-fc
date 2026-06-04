@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import PlayerCard from '../components/PlayerCard';
 import sounds from '../utils/audio';
+import LogoEquipo from '../components/LogoEquipo';
+import { useTeamLogos } from '../hooks/useTeamLogos';
+import { saveTournament, deleteTournament } from '../services/tournamentService';
 
 const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
   const [tournament, setTournament] = useState(initialTournament);
@@ -23,11 +26,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
   const [awayPenalties, setAwayPenalties] = useState('');
   const [confirmModal, setConfirmModal] = useState(null); // { title, message, onConfirm, onCancel }
   
-  // Helper to load logo URL based on team name
-  const getLogoUrl = (teamName) => {
-    const slug = teamName.toLowerCase().replace(/[\s\.]+/g, '-');
-    return `/Logos/${slug}-footballlogos-org.png`;
-  };
+  const { getLogoUrl, loading: logosLoading } = useTeamLogos();
 
   // Helper to find team owner
   const getTeamOwner = (teamName) => {
@@ -403,12 +402,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
     };
 
     try {
-      const res = await fetch(`http://localhost:5000/api/tournaments/${tournament.filename}/save`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedTournament)
-      });
-      if (!res.ok) throw new Error('No se pudieron guardar los resultados.');
+      await saveTournament(tournament.filename, updatedTournament);
       
       setTournament(updatedTournament);
       setSelectedMatch(null);
@@ -649,12 +643,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
     };
 
     try {
-      const res = await fetch(`http://localhost:5000/api/tournaments/${tournament.filename}/save`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedTournament)
-      });
-      if (!res.ok) throw new Error('No se pudo generar la Fase Final.');
+      await saveTournament(tournament.filename, updatedTournament);
       setTournament(updatedTournament);
       setActiveTab('playoffs');
     } catch (err) {
@@ -789,10 +778,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                 message: "¿Estás seguro de que quieres REINICIAR el torneo de forma permanente? Se borrarán todos los datos y tendrás que empezar de nuevo.",
                 onConfirm: async () => {
                   try {
-                    const res = await fetch(`http://localhost:5000/api/tournaments/${tournament.filename}`, {
-                      method: 'DELETE'
-                    });
-                    if (!res.ok) throw new Error("Error al eliminar el torneo.");
+                    await deleteTournament(tournament.filename);
                     onBackToMenu();
                   } catch (err) {
                     alert("No se pudo reiniciar el torneo: " + err.message);
@@ -905,7 +891,12 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                                   {idx + 1}
                                 </span>
                               </td>
-                              <td className="font-extrabold text-white">{t.name}</td>
+                              <td className="font-extrabold text-white">
+                                <div className="flex items-center gap-3">
+                                  <LogoEquipo url={getLogoUrl(t.name)} nombreEquipo={t.name} size={28} />
+                                  <span>{t.name}</span>
+                                </div>
+                              </td>
                               <td className="text-gray-400 text-[10px] uppercase font-bold">{t.owner}</td>
                               <td className="text-center font-bold text-gray-300">{t.played}</td>
                               <td className="text-center font-bold text-gray-300">{t.won}</td>
@@ -1162,12 +1153,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                 <div className="bg-panelBg border border-panelBorder p-6 rounded-2xl shadow-lg flex flex-col justify-between">
                   <div>
                     <div className="flex items-center gap-4 border-b border-panelBorder pb-4">
-                      <img
-                        src={getLogoUrl(selectedTeam.name)}
-                        onError={(e) => { e.target.src = '/Logos/cremonese-footballlogos-org.png'; }}
-                        className="w-14 h-14 object-contain filter drop-shadow-[0_0_5px_rgba(255,255,255,0.1)]"
-                        alt="Escudo"
-                      />
+                      <LogoEquipo url={getLogoUrl(selectedTeam.name)} nombreEquipo={selectedTeam.name} size={56} />
                       <div>
                         <span className="text-[10px] text-neonCyan font-mono tracking-widest block uppercase">PROPIETARIO: {selectedTeam.owner}</span>
                         <h3 className="text-2xl font-black text-white tracking-tight uppercase mt-0.5">{selectedTeam.name}</h3>

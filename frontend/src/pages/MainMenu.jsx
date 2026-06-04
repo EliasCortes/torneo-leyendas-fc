@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import sounds from '../utils/audio';
+import { listTournaments as fetchTournamentsList, getTournament, deleteTournament } from '../services/tournamentService';
 
 const MainMenu = ({ onNewTournament, onLoadTournament }) => {
   const [showLoadModal, setShowLoadModal] = useState(false);
@@ -12,9 +13,7 @@ const MainMenu = ({ onNewTournament, onLoadTournament }) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('http://localhost:5000/api/tournaments');
-      if (!res.ok) throw new Error('Error al conectar con el servidor.');
-      const data = await res.json();
+      const data = await fetchTournamentsList();
       setTournaments(data);
     } catch (err) {
       setError(err.message || 'No se pudieron cargar los torneos.');
@@ -29,28 +28,23 @@ const MainMenu = ({ onNewTournament, onLoadTournament }) => {
     }
   }, [showLoadModal]);
 
-  const handleSelectTournament = async (filename) => {
+  const handleSelectTournament = async (id) => {
     sounds.playSuccess();
     try {
-      const res = await fetch(`http://localhost:5000/api/tournaments/${filename}`);
-      if (!res.ok) throw new Error('Error al cargar los datos del torneo.');
-      const data = await res.json();
-      onLoadTournament(filename, data);
+      const data = await getTournament(id);
+      onLoadTournament(id, data);
     } catch (err) {
       alert(err.message);
     }
   };
 
-  const handleDeleteTournament = async (e, filename) => {
+  const handleDeleteTournament = async (e, id) => {
     e.stopPropagation(); // Avoid triggering selection
     if (!window.confirm('¿Seguro que deseas eliminar permanentemente este torneo?')) return;
     
     sounds.playFail();
     try {
-      const res = await fetch(`http://localhost:5000/api/tournaments/${filename}`, {
-        method: 'DELETE',
-      });
-      if (!res.ok) throw new Error('No se pudo eliminar el torneo.');
+      await deleteTournament(id);
       fetchTournaments(); // Refresh list
     } catch (err) {
       alert(err.message);

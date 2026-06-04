@@ -3,6 +3,7 @@ import RouletteWheel from '../components/RouletteWheel';
 import PlayerCard from '../components/PlayerCard';
 import sounds from '../utils/audio';
 import { getLegendPosition } from '../utils/legendPositions';
+import { getConstants, saveTournament, deleteTournament } from '../services/tournamentService';
 
 const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
   const [tournament, setTournament] = useState(initialTournamentData);
@@ -80,8 +81,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
   useEffect(() => {
     const fetchConstants = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/constants');
-        const data = await res.json();
+        const data = getConstants();
         setConstants(data);
         
         // Scan tournament for already drafted teams and legends
@@ -1019,12 +1019,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
     };
     
     try {
-      const res = await fetch(`http://localhost:5000/api/tournaments/${tournament.filename}/save`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedTournament)
-      });
-      if (!res.ok) throw new Error('No se pudo guardar el estado de la liga.');
+      await saveTournament(tournament.filename, updatedTournament);
       onComplete(updatedTournament);
     } catch (err) {
       alert(err.message);
@@ -1063,12 +1058,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
             advantages: syncedAdvantages
           };
 
-          const res = await fetch(`http://localhost:5000/api/tournaments/${tournament.filename}/save`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(tournamentToSave)
-          });
-          if (!res.ok) throw new Error('No se pudo guardar el estado actual de la liga.');
+          await saveTournament(tournament.filename, tournamentToSave);
         } catch (err) {
           console.error('Error saving progress:', err);
         }
@@ -1084,10 +1074,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
       message: "¿Estás seguro de que quieres REINICIAR el torneo de forma permanente? Se borrarán todos los datos y tendrás que empezar de nuevo.",
       onConfirm: async () => {
         try {
-          const res = await fetch(`http://localhost:5000/api/tournaments/${tournament.filename}`, {
-            method: 'DELETE'
-          });
-          if (!res.ok) throw new Error("Error al eliminar el torneo.");
+          await deleteTournament(tournament.filename);
           if (onBackToMenu) onBackToMenu();
         } catch (err) {
           alert("No se pudo reiniciar el torneo: " + err.message);

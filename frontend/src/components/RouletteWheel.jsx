@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import sounds from '../utils/audio';
 import LogoShield from '../components/LogoShield';
+import LogoEquipo from '../components/LogoEquipo';
+import { useTeamLogos } from '../hooks/useTeamLogos';
 
 const RouletteWheel = ({ options = [], onFinished, buttonText = 'TIRAR RULETA', disabled = false, onSpinStart }) => {
   const canvasRef = useRef(null);
@@ -10,6 +12,8 @@ const RouletteWheel = ({ options = [], onFinished, buttonText = 'TIRAR RULETA', 
   const [isShuffling, setIsShuffling] = useState(false);
   const animationFrameRef = useRef(null);
   
+  const { getLogoUrl } = useTeamLogos();
+
   // Audio tick trigger tracker
   const lastSegmentRef = useRef(-1);
 
@@ -338,9 +342,14 @@ const RouletteWheel = ({ options = [], onFinished, buttonText = 'TIRAR RULETA', 
       </div>
 
       {winner && (
-        <div className="mt-6 text-center animate-bounce">
-          <p className="text-[10px] text-gray-400 font-mono tracking-widest uppercase">Resultado obtenido</p>
-          <p className="text-xl font-extrabold text-neonCyan tracking-wide mt-1 drop-shadow-[0_0_5px_rgba(0,240,255,0.5)]">
+        <div className="mt-6 flex flex-col items-center text-center animate-bounce">
+          <p className="text-[10px] text-gray-400 font-mono tracking-widest uppercase mb-3">Resultado obtenido</p>
+          <LogoEquipo 
+             url={getLogoUrl(typeof winner === 'object' ? winner.name : winner)} 
+             nombreEquipo={typeof winner === 'object' ? winner.name : winner} 
+             size={72} 
+          />
+          <p className="text-xl font-extrabold text-neonCyan tracking-wide mt-3 drop-shadow-[0_0_5px_rgba(0,240,255,0.5)]">
             {typeof winner === 'object' ? winner.name : winner}
           </p>
         </div>
