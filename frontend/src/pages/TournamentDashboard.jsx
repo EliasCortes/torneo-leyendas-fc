@@ -1284,9 +1284,19 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                                 <img
                                   src={teamInfo.logo}
                                   alt={teamInfo.name}
-                                  className="w-3.5 h-3.5 object-contain"
-                                  onError={(e) => { e.target.style.display = 'none'; }}
+                                  className="w-3.5 h-3.5 object-contain rounded-sm"
+                                  style={{ mixBlendMode: 'multiply', filter: 'brightness(1.1) contrast(1.05)' }}
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.style.display = 'none';
+                                    e.target.nextElementSibling?.classList.remove('hidden');
+                                  }}
                                 />
+                                <span className="hidden w-3.5 h-3.5 rounded-sm bg-cyan-950/50 border border-cyan-500/20 text-[7px] text-cyan-400/70 font-black flex items-center justify-center flex-shrink-0"
+                                  style={{ display: 'none' }}
+                                >
+                                  {teamInfo.name?.charAt(0)}
+                                </span>
                                 <span className="text-[9px] text-gray-500 uppercase font-bold truncate max-w-[120px]">
                                   {teamInfo.name}
                                 </span>
@@ -1330,8 +1340,12 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                                 <img
                                   src={teamInfo.logo}
                                   alt={teamInfo.name}
-                                  className="w-3.5 h-3.5 object-contain"
-                                  onError={(e) => { e.target.style.display = 'none'; }}
+                                  className="w-3.5 h-3.5 object-contain rounded-sm"
+                                  style={{ mixBlendMode: 'multiply', filter: 'brightness(1.1) contrast(1.05)' }}
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.style.display = 'none';
+                                  }}
                                 />
                                 <span className="text-[9px] text-gray-500 uppercase font-bold truncate max-w-[120px]">
                                   {teamInfo.name}
@@ -1376,8 +1390,12 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                                 <img
                                   src={teamInfo.logo}
                                   alt={teamInfo.name}
-                                  className="w-3.5 h-3.5 object-contain"
-                                  onError={(e) => { e.target.style.display = 'none'; }}
+                                  className="w-3.5 h-3.5 object-contain rounded-sm"
+                                  style={{ mixBlendMode: 'multiply', filter: 'brightness(1.1) contrast(1.05)' }}
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.style.display = 'none';
+                                  }}
                                 />
                                 <span className="text-[9px] text-gray-500 uppercase font-bold truncate max-w-[120px]">
                                   {teamInfo.name}
