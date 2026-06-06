@@ -72,7 +72,7 @@ export const LogoEquipo = ({ url, nombreEquipo, size = 40 }) => {
 
   return (
     <div
-      style={containerStyle}
+      style={{ ...containerStyle, backgroundColor: 'transparent' }}
       className="relative flex items-center justify-center rounded-full overflow-hidden flex-shrink-0"
       title={nombreEquipo}
     >
@@ -81,7 +81,9 @@ export const LogoEquipo = ({ url, nombreEquipo, size = 40 }) => {
         alt={`Escudo de ${nombreEquipo}`}
         className="w-full h-full object-contain"
         style={{
+          backgroundColor: 'transparent',
           filter: 'drop-shadow(0 0.5px 2px rgba(0,0,0,0.3))',
+          display: 'block',
         }}
         onError={() => setHasError(true)}
         draggable="false"

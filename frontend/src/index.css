@@ -5,6 +5,15 @@
 @tailwind utilities;
 
 /* Reset and Custom Base Styles */
+
+/*
+ * FIX: Producción (Cloudflare/LightningCSS) puede inyectar fondo blanco
+ * en las imágenes. Forzamos transparencia en todas las img de escudos/logos.
+ */
+img {
+  background-color: transparent !important;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', 'Outfit', sans-serif;

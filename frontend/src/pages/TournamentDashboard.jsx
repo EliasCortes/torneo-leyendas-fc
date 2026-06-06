@@ -1280,12 +1280,12 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                           <div className="flex flex-col truncate">
                             <span className="font-extrabold text-white uppercase truncate">{scorer.name}</span>
                             {teamInfo && (
-                              <div className="flex items-center gap-1 mt-0.5">
+                              <div className="flex items-center gap-1 mt-0.5" style={{ backgroundColor: 'transparent' }}>
                                 <img
                                   src={teamInfo.logo}
                                   alt={teamInfo.name}
                                   className="w-3.5 h-3.5 object-contain rounded-sm"
-                                  style={{ mixBlendMode: 'multiply', filter: 'brightness(1.1) contrast(1.05)' }}
+                                  style={{ backgroundColor: 'transparent', display: 'block', flexShrink: 0 }}
                                   onError={(e) => {
                                     e.target.onerror = null;
                                     e.target.style.display = 'none';
@@ -1336,12 +1336,12 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                           <div className="flex flex-col truncate">
                             <span className="font-extrabold text-white uppercase truncate">{assist.name}</span>
                             {teamInfo && (
-                              <div className="flex items-center gap-1 mt-0.5">
+                              <div className="flex items-center gap-1 mt-0.5" style={{ backgroundColor: 'transparent' }}>
                                 <img
                                   src={teamInfo.logo}
                                   alt={teamInfo.name}
                                   className="w-3.5 h-3.5 object-contain rounded-sm"
-                                  style={{ mixBlendMode: 'multiply', filter: 'brightness(1.1) contrast(1.05)' }}
+                                  style={{ backgroundColor: 'transparent', display: 'block', flexShrink: 0 }}
                                   onError={(e) => {
                                     e.target.onerror = null;
                                     e.target.style.display = 'none';
@@ -1386,12 +1386,12 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                           <div className="flex flex-col truncate">
                             <span className="font-extrabold text-white uppercase truncate">{mvp.name}</span>
                             {teamInfo && (
-                              <div className="flex items-center gap-1 mt-0.5">
+                              <div className="flex items-center gap-1 mt-0.5" style={{ backgroundColor: 'transparent' }}>
                                 <img
                                   src={teamInfo.logo}
                                   alt={teamInfo.name}
                                   className="w-3.5 h-3.5 object-contain rounded-sm"
-                                  style={{ mixBlendMode: 'multiply', filter: 'brightness(1.1) contrast(1.05)' }}
+                                  style={{ backgroundColor: 'transparent', display: 'block', flexShrink: 0 }}
                                   onError={(e) => {
                                     e.target.onerror = null;
                                     e.target.style.display = 'none';
