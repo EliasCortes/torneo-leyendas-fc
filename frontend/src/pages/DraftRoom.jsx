@@ -8,8 +8,13 @@ import { useTeamLogos } from '../hooks/useTeamLogos';
 
 const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
   const [tournament, setTournament] = useState(initialTournamentData);
-  const [draftPhase, setDraftPhase] = useState('teams'); // 'teams', 'captains', 'options', 'finished', 'group_distribution'
+  const [draftPhase, setDraftPhase] = useState('mode_select'); // 'mode_select', 'teams', 'captains', 'options', 'finished', 'group_distribution', 'manual_setup', 'champion_advantage'
   const { getLogoUrl } = useTeamLogos();
+
+  // Manual setup state
+  const [manualTeamAssignments, setManualTeamAssignments] = useState({}); // { playerName: [teamName, ...] }
+  const [manualCaptainAssignments, setManualCaptainAssignments] = useState({}); // { teamName: captainName }
+  const [manualSetupError, setManualSetupError] = useState('');
   
   // Static lists loaded from backend
   const [constants, setConstants] = useState({
@@ -164,12 +169,36 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
           }
         }
         setTurnSequence(seq);
+
+        // Init manual team assignment structure with empty arrays per player
+        const initTeams = {};
+        tournament.human_players.forEach(p => {
+          initTeams[p.name] = [];
+          // Pre-fill already assigned teams (champion team)
+          if (tournament.teams) {
+            tournament.teams.forEach(t => {
+              if (t.owner === p.name) initTeams[p.name].push(t.name);
+            });
+          }
+        });
+        setManualTeamAssignments(initTeams);
+
+        // Pre-fill captain assignments from already assigned teams
+        const initCaptains = {};
+        if (tournament.teams) {
+          tournament.teams.forEach(t => {
+            if (t.captain) initCaptains[t.name] = t.captain;
+          });
+        }
+        setManualCaptainAssignments(initCaptains);
+
       } catch (err) {
         console.error('Error fetching constants:', err);
       }
     };
     fetchConstants();
   }, []);
+
 
   // Automatically skip captain selection for teams that already have a captain
   useEffect(() => {
@@ -325,6 +354,116 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
     } else if (type === 'ruletaDiamante') {
       setModalType('sub_wheel_legend');
       setModalData({ category: 'Diamante', options: availableDiamonds, team, spinLog: fakeSpinLog, contextData });
+    }
+  };
+
+  // --- MODO MANUAL: CONFIRMACIÓN Y CONSTRUCCIÓN DEL TORNEO ---
+  const handleConfirmManualSetup = async () => {
+    setManualSetupError('');
+
+    // Validation: all players must have exactly teams_per_player teams assigned
+    const teamsPerPlayer = tournament.teams_per_player;
+    for (const player of tournament.human_players) {
+      const assigned = manualTeamAssignments[player.name] || [];
+      if (assigned.length !== teamsPerPlayer) {
+        setManualSetupError(`${player.name} debe tener exactamente ${teamsPerPlayer} equipos asignados (tiene ${assigned.length}).`);
+        return;
+      }
+    }
+
+    // Validation: no duplicate teams across players
+    const allAssigned = Object.values(manualTeamAssignments).flat();
+    const uniqueTeams = new Set(allAssigned);
+    if (uniqueTeams.size !== allAssigned.length) {
+      setManualSetupError('Hay equipos duplicados. Cada equipo solo puede ser asignado a un jugador.');
+      return;
+    }
+
+    // Validation: all assigned teams must have a captain
+    for (const teamName of allAssigned) {
+      if (!manualCaptainAssignments[teamName]) {
+        setManualSetupError(`El equipo "${teamName}" no tiene capitán asignado.`);
+        return;
+      }
+    }
+
+    // Validation: no duplicate captains
+    const allCaptains = Object.values(manualCaptainAssignments).filter(Boolean);
+    const uniqueCaptains = new Set(allCaptains);
+    if (uniqueCaptains.size !== allCaptains.length) {
+      setManualSetupError('Hay capitanes duplicados. Cada capitán solo puede asignarse a un equipo.');
+      return;
+    }
+
+    // Build the teams array — merge pre-assigned teams (champion) with new manual ones
+    const preExistingTeams = tournament.teams || [];
+    const preExistingNames = new Set(preExistingTeams.map(t => t.name));
+
+    const newTeams = [...preExistingTeams];
+
+    for (const player of tournament.human_players) {
+      const assigned = manualTeamAssignments[player.name] || [];
+      for (const teamName of assigned) {
+        if (preExistingNames.has(teamName)) {
+          // Already exists (champion team) — update captain if needed
+          const idx = newTeams.findIndex(t => t.name === teamName);
+          if (idx !== -1 && !newTeams[idx].captain) {
+            const captainName = manualCaptainAssignments[teamName];
+            const captainPos = getLegendPosition(captainName);
+            newTeams[idx].captain = captainName;
+            newTeams[idx].captain_category = 'Diamante';
+            if (!newTeams[idx].legends.find(l => l.name === captainName)) {
+              newTeams[idx].legends.push({ name: captainName, category: 'Diamante', position: captainPos });
+            }
+          }
+        } else {
+          const captainName = manualCaptainAssignments[teamName] || null;
+          const captainPos = captainName ? getLegendPosition(captainName) : 'Sin definir';
+          newTeams.push({
+            name: teamName,
+            owner: player.name,
+            captain: captainName,
+            captain_category: captainName ? 'Diamante' : null,
+            legends: captainName ? [{ name: captainName, category: 'Diamante', position: captainPos }] : [],
+            option_results: [],
+            base_changes: [],
+            spins: [],
+            eliminated_players: [],
+            wildcards: { Bronce: 0, Plata: 0, Oro: 0, Diamante: 0 }
+          });
+        }
+      }
+    }
+
+    // Update available pools (remove used teams and captains)
+    const usedTeamNames = new Set(newTeams.map(t => t.name));
+    const usedCaptainNames = new Set(Object.values(manualCaptainAssignments).filter(Boolean));
+    setAvailableTeams(prev => prev.filter(t => !usedTeamNames.has(t)));
+    setAvailableDiamonds(prev => prev.filter(c => !usedCaptainNames.has(c)));
+
+    // Save tournament with all teams
+    const updatedTournament = { ...tournament, teams: newTeams };
+    setTournament(updatedTournament);
+
+    try {
+      await saveTournament(tournament.filename, updatedTournament);
+    } catch (err) {
+      console.error('Error guardando el setup manual:', err);
+    }
+
+    sounds.playCardReveal();
+
+    // Decide next phase:
+    // If there's a champion advantage (ruletaDeCampeones result) that hasn't been used → show it
+    const champResult = tournament.advantages?.championsRouletteResult;
+    const hasPrevChamp = tournament.advantages?.hasPrevChampion;
+    if (hasPrevChamp && champResult) {
+      setDraftPhase('champion_advantage');
+    } else {
+      // Skip directly to options (3 spins per team)
+      setCurrentOptionTeamIndex(0);
+      setCurrentSpinNumber(1);
+      setDraftPhase('options');
     }
   };
 
@@ -1251,6 +1390,9 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
           <div className="bg-panelBg border border-panelBorder px-4 py-2 rounded-xl">
             <span className="text-gray-500">FASE ACTUAL: </span>
             <span className="text-neonCyan font-bold uppercase">
+              {draftPhase === 'mode_select' && 'Selección de Modo'}
+              {draftPhase === 'manual_setup' && 'Asignación Manual'}
+              {draftPhase === 'champion_advantage' && 'Tirada del Campeón'}
               {draftPhase === 'teams' && 'Sorteo de Equipos'}
               {draftPhase === 'captains' && 'Capitanes Diamante'}
               {draftPhase === 'options' && 'Ruleta de Opciones'}
@@ -1265,6 +1407,296 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
       <div className="w-full max-w-5xl mb-6 z-10">
         {renderAdvantagesPanel()}
       </div>
+
+      {/* ================= PHASE 0: MODE SELECTION ================= */}
+      {draftPhase === 'mode_select' && (
+        <div className="w-full max-w-3xl z-10 animate-fade-in">
+          <div className="text-center mb-10">
+            <span className="text-[11px] text-neonCyan font-mono tracking-[0.25em] uppercase block mb-2">Bienvenido al Draft</span>
+            <h2 className="text-4xl font-black text-white uppercase tracking-tight font-mono">¿Cómo quieres asignar los equipos?</h2>
+            <p className="text-gray-400 text-sm mt-3 font-mono max-w-lg mx-auto">
+              Elige si quieres usar las ruletas para el sorteo o asignar equipos y capitanes de forma manual.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Ruleta */}
+            <button
+              onClick={() => { sounds.playCardReveal(); setDraftPhase('teams'); }}
+              className="group relative p-8 rounded-2xl border border-neonCyan/30 bg-gradient-to-br from-cyan-950/30 to-darkBg hover:border-neonCyan hover:shadow-[0_0_30px_rgba(0,243,255,0.15)] transition-all duration-300 flex flex-col items-center text-center gap-4"
+            >
+              <div className="w-16 h-16 rounded-full bg-neonCyan/10 border border-neonCyan/30 flex items-center justify-center group-hover:bg-neonCyan/20 transition-all">
+                <span className="text-3xl">🎰</span>
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-neonCyan font-mono uppercase tracking-wider">Modo Ruleta</h3>
+                <p className="text-gray-400 text-xs mt-2 font-mono leading-relaxed">
+                  Los equipos y capitanes se sortean con la ruleta giratoria. El método clásico con emoción garantizada.
+                </p>
+              </div>
+              <span className="text-[10px] font-mono text-neonCyan/60 border border-neonCyan/20 px-3 py-1 rounded-full uppercase tracking-wider">
+                Equipos → Capitanes → Opciones
+              </span>
+            </button>
+
+            {/* Manual */}
+            <button
+              onClick={() => { sounds.playSwoosh(); setDraftPhase('manual_setup'); }}
+              className="group relative p-8 rounded-2xl border border-neonGold/30 bg-gradient-to-br from-amber-950/30 to-darkBg hover:border-neonGold hover:shadow-[0_0_30px_rgba(255,195,60,0.15)] transition-all duration-300 flex flex-col items-center text-center gap-4"
+            >
+              <div className="w-16 h-16 rounded-full bg-neonGold/10 border border-neonGold/30 flex items-center justify-center group-hover:bg-neonGold/20 transition-all">
+                <span className="text-3xl">✍️</span>
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-neonGold font-mono uppercase tracking-wider">Modo Manual</h3>
+                <p className="text-gray-400 text-xs mt-2 font-mono leading-relaxed">
+                  Asigna tú mismo qué equipo y capitán corresponde a cada participante. Salta directo a las tiradas de opciones.
+                </p>
+              </div>
+              <span className="text-[10px] font-mono text-neonGold/60 border border-neonGold/20 px-3 py-1 rounded-full uppercase tracking-wider">
+                Setup Manual → Opciones
+              </span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ================= PHASE: MANUAL SETUP ================= */}
+      {draftPhase === 'manual_setup' && (
+        <div className="w-full max-w-5xl z-10 animate-fade-in space-y-6">
+          <div className="text-center">
+            <span className="text-[10px] text-neonGold font-mono tracking-widest uppercase block mb-1">Modo Manual</span>
+            <h2 className="text-2xl font-black text-white font-mono uppercase tracking-tight">Asignación de Equipos y Capitanes</h2>
+            <p className="text-gray-500 text-xs mt-1 font-mono">
+              Asigna {tournament.teams_per_player} equipo{tournament.teams_per_player > 1 ? 's' : ''} y su capitán Diamante a cada participante.
+            </p>
+          </div>
+
+          {/* One card per player */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {tournament.human_players.map(player => {
+              const assigned = manualTeamAssignments[player.name] || [];
+              // Compute which teams are used by OTHER players (so we can filter them out)
+              const usedByOthers = new Set(
+                Object.entries(manualTeamAssignments)
+                  .filter(([pn]) => pn !== player.name)
+                  .flatMap(([, teams]) => teams)
+              );
+              // Pool for this player: all constants teams minus already-used-by-others
+              const availableForPlayer = constants.teams.filter(t => !usedByOthers.has(t));
+
+              return (
+                <div key={player.name} className="bg-panelBg border border-panelBorder rounded-2xl p-5 space-y-4">
+                  <div className="flex items-center gap-3 border-b border-panelBorder/40 pb-3">
+                    <div className="w-8 h-8 rounded-full bg-neonGold/10 border border-neonGold/30 flex items-center justify-center text-sm font-black text-neonGold">
+                      {player.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-white text-sm tracking-wide">{player.name}</h3>
+                      <span className="text-[10px] text-gray-500 font-mono">
+                        {assigned.length} / {tournament.teams_per_player} equipos asignados
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Team slots */}
+                  {Array.from({ length: tournament.teams_per_player }).map((_, slotIdx) => {
+                    const currentTeamInSlot = assigned[slotIdx] || '';
+                    const captain = currentTeamInSlot ? (manualCaptainAssignments[currentTeamInSlot] || '') : '';
+                    // Pre-assigned champion team is read-only
+                    const isPreAssigned = !!(tournament.teams || []).find(t => t.name === currentTeamInSlot && t.owner === player.name);
+                    const captainAlreadySet = isPreAssigned && !!(tournament.teams || []).find(t => t.name === currentTeamInSlot && t.captain);
+
+                    return (
+                      <div key={slotIdx} className="bg-darkBg/60 border border-panelBorder/50 rounded-xl p-3 space-y-2">
+                        <span className="text-[9px] text-gray-500 font-mono uppercase tracking-widest block">Equipo #{slotIdx + 1}</span>
+
+                        {/* Team selector */}
+                        {isPreAssigned ? (
+                          <div className="flex items-center gap-2 px-3 py-2 bg-neonGold/5 border border-neonGold/20 rounded-lg">
+                            <img
+                              src={getLogoUrl ? getLogoUrl(currentTeamInSlot) : ''}
+                              alt={currentTeamInSlot}
+                              style={{ width: 20, height: 20, objectFit: 'contain', backgroundColor: 'transparent', display: 'block', flexShrink: 0 }}
+                              onError={e => { e.target.style.display = 'none'; }}
+                            />
+                            <span className="text-neonGold font-bold text-xs">{currentTeamInSlot}</span>
+                            <span className="text-[9px] text-neonGold/50 font-mono ml-auto">🏆 Pre-asignado</span>
+                          </div>
+                        ) : (
+                          <select
+                            value={currentTeamInSlot}
+                            onChange={e => {
+                              const newVal = e.target.value;
+                              const newAssigned = [...assigned];
+                              const oldTeam = newAssigned[slotIdx];
+                              newAssigned[slotIdx] = newVal;
+                              // Remove captain of old team if it had one
+                              if (oldTeam && oldTeam !== newVal) {
+                                setManualCaptainAssignments(prev => {
+                                  const updated = { ...prev };
+                                  delete updated[oldTeam];
+                                  return updated;
+                                });
+                              }
+                              setManualTeamAssignments(prev => ({
+                                ...prev,
+                                [player.name]: newAssigned
+                              }));
+                              setManualSetupError('');
+                            }}
+                            className="w-full bg-darkBg border border-panelBorder p-2 rounded-lg text-xs text-white font-mono focus:outline-none focus:border-neonGold cursor-pointer"
+                          >
+                            <option value="">-- Selecciona un equipo --</option>
+                            {availableForPlayer
+                              .filter(t => t === currentTeamInSlot || !assigned.includes(t))
+                              .sort()
+                              .map(t => (
+                                <option key={t} value={t}>{t}</option>
+                              ))
+                            }
+                          </select>
+                        )}
+
+                        {/* Captain selector — only shown when team is assigned */}
+                        {currentTeamInSlot && (
+                          captainAlreadySet ? (
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-cyan-950/20 border border-neonCyan/20 rounded-lg">
+                              <span className="text-neonCyan text-[10px] font-bold">💎 {(tournament.teams || []).find(t => t.name === currentTeamInSlot)?.captain}</span>
+                              <span className="text-[9px] text-neonCyan/40 ml-auto font-mono">Pre-asignado</span>
+                            </div>
+                          ) : (
+                            <select
+                              value={captain}
+                              onChange={e => {
+                                setManualCaptainAssignments(prev => ({
+                                  ...prev,
+                                  [currentTeamInSlot]: e.target.value
+                                }));
+                                setManualSetupError('');
+                              }}
+                              className="w-full bg-darkBg border border-panelBorder p-2 rounded-lg text-xs text-white font-mono focus:outline-none focus:border-neonCyan cursor-pointer"
+                            >
+                              <option value="">-- Capitán Diamante --</option>
+                              {constants.diamond_legends
+                                .filter(d => {
+                                  // Show if it's the currently selected captain OR not used by any other team
+                                  const usedByOtherTeam = Object.entries(manualCaptainAssignments)
+                                    .some(([tn, cap]) => tn !== currentTeamInSlot && cap === d);
+                                  return d === captain || !usedByOtherTeam;
+                                })
+                                .map(d => (
+                                  <option key={d} value={d}>{d}</option>
+                                ))
+                              }
+                            </select>
+                          )
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Error message */}
+          {manualSetupError && (
+            <div className="bg-red-950/30 border border-red-700/50 rounded-xl p-3 text-xs text-red-300 font-mono text-center animate-pulse">
+              ⚠️ {manualSetupError}
+            </div>
+          )}
+
+          {/* Action buttons */}
+          <div className="flex gap-4 justify-center pb-6">
+            <button
+              onClick={() => { sounds.playTick(); setDraftPhase('mode_select'); }}
+              className="px-6 py-3 rounded-full font-bold bg-panelBorder text-white hover:bg-gray-800 transition-all text-sm font-mono"
+            >
+              ← VOLVER
+            </button>
+            <button
+              onClick={handleConfirmManualSetup}
+              className="px-10 py-3 rounded-full font-black text-sm tracking-wider bg-gradient-to-r from-neonGold to-amber-500 text-darkBg shadow-neonGold hover:brightness-105 active:scale-95 transition-all uppercase font-mono"
+            >
+              ✅ CONFIRMAR SETUP Y CONTINUAR
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ================= PHASE: CHAMPION ADVANTAGE ================= */}
+      {draftPhase === 'champion_advantage' && (() => {
+        const champOwnerName = tournament.advantages?.prevChampOwner;
+        const champTeamName = tournament.advantages?.prevChampTeam;
+        const champResult = tournament.advantages?.championsRouletteResult;
+        const champTeamObj = (tournament.teams || []).find(t => t.name === champTeamName);
+
+        return (
+          <div className="w-full max-w-lg z-10 animate-scale-up">
+            <div className="bg-panelBg border border-neonGold rounded-2xl p-8 shadow-2xl text-center" style={{ boxShadow: '0 0 40px rgba(255,195,60,0.15)' }}>
+              <div className="w-16 h-16 rounded-full bg-neonGold/10 border border-neonGold/30 flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">👑</span>
+              </div>
+              <span className="text-[10px] text-neonGold/70 font-mono tracking-widest uppercase block mb-1">Tirada del Campeón</span>
+              <h2 className="text-2xl font-black text-white uppercase font-mono tracking-tight mb-1">{champOwnerName}</h2>
+              {champTeamObj && (
+                <div className="flex items-center justify-center gap-2 mb-4">
+                  <img
+                    src={getLogoUrl ? getLogoUrl(champTeamName) : ''}
+                    alt={champTeamName}
+                    style={{ width: 24, height: 24, objectFit: 'contain', backgroundColor: 'transparent', display: 'block' }}
+                    onError={e => { e.target.style.display = 'none'; }}
+                  />
+                  <span className="text-sm text-neonGold/80 font-mono font-bold">{champTeamName}</span>
+                </div>
+              )}
+
+              <div className="bg-darkBg/60 border border-neonGold/30 rounded-xl p-5 mb-6">
+                <span className="text-[10px] text-gray-500 font-mono uppercase block mb-1">Ventaja ganada en la Ruleta de Campeones</span>
+                <span className="text-2xl font-black text-neonGold font-mono uppercase">{champResult}</span>
+              </div>
+
+              <p className="text-xs text-gray-400 font-mono mb-6 leading-relaxed">
+                Este es el premio que obtuvo el campeón al girar la Ruleta de Campeones. Pulsa el botón para aplicarlo ahora a tu equipo antes de las tiradas de opciones.
+              </p>
+
+              <div className="space-y-3">
+                {champTeamObj && (
+                  <button
+                    onClick={() => {
+                      // Map champResult string to the advantage type key
+                      const typeMap = {
+                        'Comodín Oro': 'comodinOro',
+                        'Comodín Diamante': 'comodinDiamante',
+                        'Tirar Ruleta Oro': 'ruletaOro',
+                        'Tirar Ruleta Diamante': 'ruletaDiamante'
+                      };
+                      const advType = typeMap[champResult];
+                      if (advType) {
+                        handleUseSpecialAdvantage(champOwnerName, advType);
+                      }
+                    }}
+                    className="w-full py-4 rounded-xl font-black text-sm tracking-wider bg-gradient-to-r from-neonGold to-amber-500 text-darkBg shadow-neonGold hover:brightness-105 active:scale-95 transition-all uppercase font-mono"
+                  >
+                    👑 USAR VENTAJA AHORA
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    setCurrentOptionTeamIndex(0);
+                    setCurrentSpinNumber(1);
+                    setDraftPhase('options');
+                  }}
+                  className="w-full py-2.5 rounded-xl font-bold text-xs text-gray-400 border border-panelBorder hover:text-white hover:border-gray-500 transition-all font-mono uppercase"
+                >
+                  Omitir por ahora y continuar a tiradas
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ================= PHASE 1: TEAMS SORTEO ================= */}
       {draftPhase === 'teams' && (
@@ -2163,10 +2595,18 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
             </h4>
             
             <button
-              onClick={() => setModalType(null)}
+              onClick={() => {
+                setModalType(null);
+                // If we were in champion_advantage phase, advance to options now
+                if (draftPhase === 'champion_advantage') {
+                  setCurrentOptionTeamIndex(0);
+                  setCurrentSpinNumber(1);
+                  setDraftPhase('options');
+                }
+              }}
               className="w-full py-3 bg-panelBorder rounded-xl font-bold hover:bg-gray-800 text-xs tracking-wider transition-all uppercase font-mono"
             >
-              Aceptar y Cerrar
+              Aceptar y Continuar a Tiradas
             </button>
           </div>
         </div>
