@@ -713,8 +713,33 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
       {/* DASHBOARD NAVBAR HEADER */}
       <div className="w-full bg-panelBg/80 border-b border-panelBorder backdrop-blur-md sticky top-0 z-40 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full border border-neonCyan flex items-center justify-center bg-darkBg shadow-neonCyan">
-            <span className="text-neonCyan font-black text-sm">FC</span>
+          {/* Logo oficial del torneo */}
+          <div
+            className="relative flex items-center justify-center flex-shrink-0"
+            style={{
+              width: '2.6rem',
+              height: '2.6rem',
+              background: 'radial-gradient(circle at center, #0b1324 0%, #060b14 100%)',
+              border: '1px solid rgba(0,243,255,0.35)',
+              borderRadius: '50%',
+              boxShadow: 'inset 0 0 12px rgba(0,243,255,0.12), 0 0 18px rgba(0,243,255,0.1)',
+              overflow: 'hidden',
+            }}
+          >
+            <img
+              src="/logo-escudo-clean.png"
+              alt="Torneo Leyendas"
+              style={{
+                width: '82%',
+                height: '82%',
+                objectFit: 'contain',
+                mixBlendMode: 'lighten',
+                backgroundColor: 'transparent',
+                filter: 'drop-shadow(0 1px 4px rgba(205,155,80,0.25))',
+                display: 'block',
+              }}
+              draggable="false"
+            />
           </div>
           <div>
             <h2 className="text-lg font-black font-mono tracking-wider uppercase">{tournament.name}</h2>
@@ -947,20 +972,36 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                         className="p-4 bg-darkBg/60 border border-panelBorder rounded-xl cursor-pointer hover:border-neonCyan transition-all duration-300 flex justify-between items-center group shadow-md"
                       >
                         <div className="flex flex-col gap-1.5 flex-1">
+                          {/* Equipo Local */}
                           <div className="flex justify-between items-center">
-                            <span className="font-extrabold text-sm group-hover:text-neonCyan transition-colors">
-                              {match.home}
-                            </span>
-                            <span className="text-lg font-black font-mono">
+                            <div className="flex items-center gap-2">
+                              <LogoEquipo url={getLogoUrl(match.home)} nombreEquipo={match.home} size={22} />
+                              <span className="font-extrabold text-sm group-hover:text-neonCyan transition-colors">
+                                {match.home}
+                              </span>
+                            </div>
+                            <span className={`text-lg font-black font-mono ml-2 ${
+                              match.result
+                                ? match.result.homeGoals > match.result.awayGoals ? 'text-neonCyan' : 'text-gray-400'
+                                : 'text-gray-300'
+                            }`}>
                               {match.result ? match.result.homeGoals : '-'}
                             </span>
                           </div>
 
+                          {/* Equipo Visitante */}
                           <div className="flex justify-between items-center border-t border-panelBorder/30 pt-1.5">
-                            <span className="font-extrabold text-sm group-hover:text-neonCyan transition-colors">
-                              {match.away}
-                            </span>
-                            <span className="text-lg font-black font-mono">
+                            <div className="flex items-center gap-2">
+                              <LogoEquipo url={getLogoUrl(match.away)} nombreEquipo={match.away} size={22} />
+                              <span className="font-extrabold text-sm group-hover:text-neonCyan transition-colors">
+                                {match.away}
+                              </span>
+                            </div>
+                            <span className={`text-lg font-black font-mono ml-2 ${
+                              match.result
+                                ? match.result.awayGoals > match.result.homeGoals ? 'text-neonCyan' : 'text-gray-400'
+                                : 'text-gray-300'
+                            }`}>
                               {match.result ? match.result.awayGoals : '-'}
                             </span>
                           </div>
@@ -1044,73 +1085,79 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                               )}
                             </div>
                             
-                            {/* Home team */}
-                            <div className="flex justify-between items-center min-h-[22px]">
-                              <div className="flex items-center gap-1.5 truncate">
-                                {match.result && isHomeWinner && <span className="text-neonCyan text-[10px] animate-pulse">▶</span>}
-                                <div className="flex flex-col truncate">
-                                  <span className={`font-bold text-xs truncate max-w-[150px] ${
-                                    match.result
-                                      ? isHomeWinner
-                                        ? 'text-neonCyan font-black'
-                                        : 'text-gray-500 line-through'
-                                      : 'text-gray-300'
-                                  }`}>
-                                    {match.home}
-                                  </span>
-                                  {homeOwner && (
-                                    <span className={`text-[8px] font-bold uppercase tracking-wider ${
-                                      match.result && !isHomeWinner ? 'text-gray-600' : 'text-neonGold/80'
-                                    }`}>
-                                      {homeOwner}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              <span className={`font-extrabold text-sm text-right ${
-                                match.result
-                                  ? isHomeWinner
-                                    ? 'text-neonCyan font-black'
-                                    : 'text-gray-500'
-                                  : 'text-gray-400'
-                              }`}>
-                                {match.result ? match.result.homeGoals : '-'}
-                              </span>
-                            </div>
+                            {/* Home team - Playoff */}
+                             <div className="flex justify-between items-center min-h-[22px]">
+                               <div className="flex items-center gap-1.5 truncate">
+                                 {match.result && isHomeWinner && <span className="text-neonCyan text-[10px] animate-pulse">▶</span>}
+                                 {isPlayable && (
+                                   <LogoEquipo url={getLogoUrl(match.home)} nombreEquipo={match.home} size={18} />
+                                 )}
+                                 <div className="flex flex-col truncate">
+                                   <span className={`font-bold text-xs truncate max-w-[140px] ${
+                                     match.result
+                                       ? isHomeWinner
+                                         ? 'text-neonCyan font-black'
+                                         : 'text-gray-500 line-through'
+                                       : 'text-gray-300'
+                                   }`}>
+                                     {match.home}
+                                   </span>
+                                   {homeOwner && (
+                                     <span className={`text-[8px] font-bold uppercase tracking-wider ${
+                                       match.result && !isHomeWinner ? 'text-gray-600' : 'text-neonGold/80'
+                                     }`}>
+                                       {homeOwner}
+                                     </span>
+                                   )}
+                                 </div>
+                               </div>
+                               <span className={`font-extrabold text-sm text-right ${
+                                 match.result
+                                   ? isHomeWinner
+                                     ? 'text-neonCyan font-black'
+                                     : 'text-gray-500'
+                                   : 'text-gray-400'
+                               }`}>
+                                 {match.result ? match.result.homeGoals : '-'}
+                               </span>
+                             </div>
 
-                            {/* Away team */}
-                            <div className="flex justify-between items-center border-t border-panelBorder/30 pt-1.5 min-h-[22px]">
-                              <div className="flex items-center gap-1.5 truncate">
-                                {match.result && isAwayWinner && <span className="text-neonCyan text-[10px] animate-pulse">▶</span>}
-                                <div className="flex flex-col truncate">
-                                  <span className={`font-bold text-xs truncate max-w-[150px] ${
-                                    match.result
-                                      ? isAwayWinner
-                                        ? 'text-neonCyan font-black'
-                                        : 'text-gray-500 line-through'
-                                      : 'text-gray-300'
-                                  }`}>
-                                    {match.away}
-                                  </span>
-                                  {awayOwner && (
-                                    <span className={`text-[8px] font-bold uppercase tracking-wider ${
-                                      match.result && !isAwayWinner ? 'text-gray-600' : 'text-neonGold/80'
-                                    }`}>
-                                      {awayOwner}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              <span className={`font-extrabold text-sm text-right ${
-                                match.result
-                                  ? isAwayWinner
-                                    ? 'text-neonCyan font-black'
-                                    : 'text-gray-500'
-                                  : 'text-gray-400'
-                              }`}>
-                                {match.result ? match.result.awayGoals : '-'}
-                              </span>
-                            </div>
+                             {/* Away team - Playoff */}
+                             <div className="flex justify-between items-center border-t border-panelBorder/30 pt-1.5 min-h-[22px]">
+                               <div className="flex items-center gap-1.5 truncate">
+                                 {match.result && isAwayWinner && <span className="text-neonCyan text-[10px] animate-pulse">▶</span>}
+                                 {isPlayable && (
+                                   <LogoEquipo url={getLogoUrl(match.away)} nombreEquipo={match.away} size={18} />
+                                 )}
+                                 <div className="flex flex-col truncate">
+                                   <span className={`font-bold text-xs truncate max-w-[140px] ${
+                                     match.result
+                                       ? isAwayWinner
+                                         ? 'text-neonCyan font-black'
+                                         : 'text-gray-500 line-through'
+                                       : 'text-gray-300'
+                                   }`}>
+                                     {match.away}
+                                   </span>
+                                   {awayOwner && (
+                                     <span className={`text-[8px] font-bold uppercase tracking-wider ${
+                                       match.result && !isAwayWinner ? 'text-gray-600' : 'text-neonGold/80'
+                                     }`}>
+                                       {awayOwner}
+                                     </span>
+                                   )}
+                                 </div>
+                               </div>
+                               <span className={`font-extrabold text-sm text-right ${
+                                 match.result
+                                   ? isAwayWinner
+                                     ? 'text-neonCyan font-black'
+                                     : 'text-gray-500'
+                                   : 'text-gray-400'
+                               }`}>
+                                 {match.result ? match.result.awayGoals : '-'}
+                               </span>
+                             </div>
                             
                             {/* Penalty Shootout Score display */}
                             {match.result && match.result.penalties && (

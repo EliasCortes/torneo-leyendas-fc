@@ -4,10 +4,12 @@ import PlayerCard from '../components/PlayerCard';
 import sounds from '../utils/audio';
 import { getLegendPosition } from '../utils/legendPositions';
 import { getConstants, saveTournament, deleteTournament } from '../services/tournamentService';
+import { useTeamLogos } from '../hooks/useTeamLogos';
 
 const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
   const [tournament, setTournament] = useState(initialTournamentData);
   const [draftPhase, setDraftPhase] = useState('teams'); // 'teams', 'captains', 'options', 'finished', 'group_distribution'
+  const { getLogoUrl } = useTeamLogos();
   
   // Static lists loaded from backend
   const [constants, setConstants] = useState({
@@ -270,7 +272,21 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
       alert('Debes tener al menos un equipo asignado para usar esta ventaja.');
       return;
     }
-    
+
+    // La ventaja del campeón es automática: siempre se aplica al equipo campeón
+    // guardado en tournament.advantages.prevChampTeam, sin mostrar selector.
+    const prevChampTeamName = tournament.advantages?.prevChampTeam;
+    if (prevChampTeamName) {
+      const champTeam = playerTeams.find(t => t.name === prevChampTeamName);
+      if (champTeam) {
+        // Equipo campeón encontrado → ejecutar directo, sin selector
+        executeSpecialAdvantage(playerName, type, champTeam);
+        return;
+      }
+    }
+
+    // Fallback: si por alguna razón no existe prevChampTeam registrado,
+    // usar el primer equipo del jugador (o el selector si tiene varios).
     if (playerTeams.length === 1) {
       executeSpecialAdvantage(playerName, type, playerTeams[0]);
     } else {
@@ -1181,9 +1197,42 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
 
       {/* Header Info */}
       <div className="w-full max-w-5xl flex flex-col md:flex-row justify-between items-start md:items-center border-b border-panelBorder pb-4 mb-6 z-10 gap-4">
-        <div>
-          <span className="text-[10px] text-neonCyan font-mono tracking-widest block">SALA DE DRAFT</span>
-          <h2 className="text-2xl font-black font-mono tracking-wide uppercase mt-0.5">{tournament.name}</h2>
+        <div className="flex items-center gap-4">
+          {/* Logo oficial del torneo */}
+          <div
+            style={{
+              width: '3rem',
+              height: '3rem',
+              background: 'radial-gradient(circle at center, #0b1324 0%, #060b14 100%)',
+              border: '1px solid rgba(0,243,255,0.35)',
+              borderRadius: '50%',
+              boxShadow: 'inset 0 0 14px rgba(0,243,255,0.12), 0 0 22px rgba(0,243,255,0.1)',
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <img
+              src="/logo-escudo-clean.png"
+              alt="Torneo Leyendas"
+              style={{
+                width: '80%',
+                height: '80%',
+                objectFit: 'contain',
+                mixBlendMode: 'lighten',
+                backgroundColor: 'transparent',
+                filter: 'drop-shadow(0 1px 5px rgba(205,155,80,0.3))',
+                display: 'block',
+              }}
+              draggable="false"
+            />
+          </div>
+          <div>
+            <span className="text-[10px] text-neonCyan font-mono tracking-widest block">SALA DE DRAFT</span>
+            <h2 className="text-2xl font-black font-mono tracking-wide uppercase mt-0.5">{tournament.name}</h2>
+          </div>
         </div>
         <div className="flex flex-wrap gap-3 text-xs font-mono items-center w-full md:w-auto justify-end">
           <button
@@ -1298,7 +1347,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                     {tournament.teams.map((t, idx) => (
                       <div 
                         key={idx} 
-                        className="p-3 rounded-xl text-center transition-all duration-300 hover:scale-[1.02] group cursor-default"
+                        className="p-3 rounded-xl text-center transition-all duration-300 hover:scale-[1.02] group cursor-default flex flex-col items-center gap-1.5"
                         style={{
                           background: 'linear-gradient(135deg, rgba(5,10,20,0.8) 0%, rgba(11,19,36,0.7) 100%)',
                           border: '1px solid rgba(255,255,255,0.05)',
@@ -1313,8 +1362,22 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                           e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
                         }}
                       >
+                        {/* Escudo del equipo */}
+                        <img
+                          src={getLogoUrl ? getLogoUrl(t.name) : ''}
+                          alt={t.name}
+                          style={{
+                            width: '28px',
+                            height: '28px',
+                            objectFit: 'contain',
+                            backgroundColor: 'transparent',
+                            display: 'block',
+                          }}
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                          draggable="false"
+                        />
                         <span className="text-[8px] text-neonCyan/70 font-mono font-bold block uppercase tracking-wider">{t.owner}</span>
-                        <span className="font-extrabold text-sm text-white/90 truncate block mt-1 group-hover:text-white transition-colors">{t.name}</span>
+                        <span className="font-extrabold text-sm text-white/90 truncate block group-hover:text-white transition-colors">{t.name}</span>
                       </div>
                     ))}
                   </div>
