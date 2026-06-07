@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import sounds from '../utils/audio';
 import LogoShield from '../components/LogoShield';
+import RulesEncyclopedia from '../components/RulesEncyclopedia';
 
 const IntroScreen = ({ onEnter }) => {
   const [audioEnabled, setAudioEnabled] = useState(true);
+  const [showRules, setShowRules] = useState(false);
 
   const handleStart = () => {
     // Initialize browser AudioContext
@@ -168,6 +170,30 @@ const IntroScreen = ({ onEnter }) => {
           ENTRAR AL ESTADIO
         </button>
 
+        {/* --- Rules Button --- */}
+        <button
+          onClick={() => { sounds.playSwoosh(); setShowRules(true); }}
+          className="mt-2 flex items-center gap-2 px-6 py-2.5 rounded-full font-mono font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:scale-105 active:scale-95"
+          style={{
+            background: 'rgba(0,243,255,0.06)',
+            border: '1px solid rgba(0,243,255,0.2)',
+            color: 'rgba(0,243,255,0.65)',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'rgba(0,243,255,0.1)';
+            e.currentTarget.style.color = '#00f3ff';
+            e.currentTarget.style.borderColor = 'rgba(0,243,255,0.45)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'rgba(0,243,255,0.06)';
+            e.currentTarget.style.color = 'rgba(0,243,255,0.65)';
+            e.currentTarget.style.borderColor = 'rgba(0,243,255,0.2)';
+          }}
+        >
+          <span>📚</span>
+          Reglas &amp; Base de Datos
+        </button>
+
         {/* --- Footer --- */}
         <span 
           className="mt-4 text-[9px] font-mono tracking-[0.3em] uppercase"
@@ -176,6 +202,9 @@ const IntroScreen = ({ onEnter }) => {
           INSPIRADO EN EA SPORTS FC &amp; CHAMPIONS LEAGUE
         </span>
       </div>
+
+      {/* RULES ENCYCLOPEDIA MODAL */}
+      {showRules && <RulesEncyclopedia onClose={() => setShowRules(false)} />}
     </div>
   );
 };

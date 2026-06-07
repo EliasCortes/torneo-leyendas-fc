@@ -5,6 +5,7 @@ import sounds from '../utils/audio';
 import { getLegendPosition } from '../utils/legendPositions';
 import { getConstants, saveTournament, deleteTournament } from '../services/tournamentService';
 import { useTeamLogos } from '../hooks/useTeamLogos';
+import RulesEncyclopedia from '../components/RulesEncyclopedia';
 
 const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
   const [tournament, setTournament] = useState(initialTournamentData);
@@ -51,6 +52,17 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
   const [removeInput, setRemoveInput] = useState('');
   const [removeError, setRemoveError] = useState('');
 
+  // Toast notifications
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
+  const toastTimerRef = useRef(null);
+
+  // Champion spin completed guardrail
+  const [champSpinCompleted, setChampSpinCompleted] = useState(false);
+
+  // Rules encyclopedia modal
+  const [showRules, setShowRules] = useState(false);
+
   // Pending spin results and keys for respinning
   const [pendingSpinResult, setPendingSpinResult] = useState(null);
   const [pendingSubSpinResult, setPendingSubSpinResult] = useState(null);
@@ -93,24 +105,51 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
         
         // Scan tournament for already drafted teams and legends
         const draftedTeams = new Set();
-        const assignedLegends = new Set();
+        const assignedLegendsNormalized = new Set();
+
+        const addLegendToSet = (name) => {
+          if (name) {
+            assignedLegendsNormalized.add(name.trim().toLowerCase());
+          }
+        };
         
         if (tournament.teams) {
           tournament.teams.forEach(t => {
             draftedTeams.add(t.name);
-            if (t.captain) assignedLegends.add(t.captain);
+            if (t.captain) addLegendToSet(t.captain);
             if (t.legends) {
-              t.legends.forEach(l => assignedLegends.add(l.name));
+              t.legends.forEach(l => addLegendToSet(l.name));
             }
           });
         }
 
+        // FIX: Exclude the previous champion's retained captain from Diamond pool
+        const prevChampTeamName = tournament.advantages?.prevChampTeam;
+        const prevChampTeamObj = (tournament.teams || []).find(t => t.name === prevChampTeamName);
+        if (prevChampTeamObj?.captain) {
+          addLegendToSet(prevChampTeamObj.captain);
+        }
+
+        // FIX CRITICAL: Exclude prevCaptain set in the wizard (even before a team object exists)
+        const prevCaptainFromWizard = tournament.advantages?.prevCaptain;
+        if (prevCaptainFromWizard) {
+          addLegendToSet(prevCaptainFromWizard);
+        }
+
+        // FIX CRITICAL: Exclude all retainedPlayers from ALL legend pools
+        // retainedPlayers is an array of player name strings stored in advantages
+        const retainedPlayers = tournament.advantages?.retainedPlayers || [];
+        retainedPlayers.forEach(playerName => {
+          addLegendToSet(playerName);
+        });
+
         // Initialize pools by excluding already used entities
         setAvailableTeams(data.teams.filter(t => !draftedTeams.has(t)));
-        setAvailableDiamonds(data.diamond_legends.filter(c => !assignedLegends.has(c)));
-        setAvailableGolds(data.gold_legends.filter(c => !assignedLegends.has(c)));
-        setAvailableSilvers(data.silver_legends.filter(c => !assignedLegends.has(c)));
-        setAvailableBronzes(data.bronze_legends.filter(c => !assignedLegends.has(c)));
+        setAvailableDiamonds(data.diamond_legends.filter(c => !assignedLegendsNormalized.has(c.trim().toLowerCase())));
+        setAvailableGolds(data.gold_legends.filter(c => !assignedLegendsNormalized.has(c.trim().toLowerCase())));
+        setAvailableSilvers(data.silver_legends.filter(c => !assignedLegendsNormalized.has(c.trim().toLowerCase())));
+        setAvailableBronzes(data.bronze_legends.filter(c => !assignedLegendsNormalized.has(c.trim().toLowerCase())));
+
         
         // Initialize player tokens bank (Repescas, repeats, specials)
         const reps = {};
@@ -224,6 +263,21 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
     setAvailableGolds(prev => prev.filter(c => c !== legendName));
     setAvailableSilvers(prev => prev.filter(c => c !== legendName));
     setAvailableBronzes(prev => prev.filter(c => c !== legendName));
+  };
+
+  // Show a toast notification (auto-dismiss after 3.5s)
+  const showToast = (message) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToastMessage(message);
+    setToastVisible(true);
+    toastTimerRef.current = setTimeout(() => setToastVisible(false), 3500);
+  };
+
+  // Check whether champion spin is required before advancing
+  const hasChampionPending = () => {
+    const hasPrevChamp = tournament.advantages?.hasPrevChampion;
+    const champResult  = tournament.advantages?.championsRouletteResult;
+    return hasPrevChamp && champResult && !champSpinCompleted;
   };
 
   // --- HELPERS FOR INVENTORIES & RESPINS ---
@@ -1375,6 +1429,12 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
         </div>
         <div className="flex flex-wrap gap-3 text-xs font-mono items-center w-full md:w-auto justify-end">
           <button
+            onClick={() => setShowRules(true)}
+            className="px-4 py-2 bg-darkBg border border-panelBorder rounded-xl text-gray-300 hover:text-white hover:border-neonCyan/50 transition-all font-mono flex items-center gap-1.5"
+          >
+            📚 REGLAS
+          </button>
+          <button
             onClick={handleExitDraft}
             className="px-4 py-2 bg-darkBg border border-panelBorder rounded-xl text-gray-300 hover:text-white hover:border-gray-500 transition-all font-mono flex items-center gap-1.5"
           >
@@ -1419,10 +1479,37 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
             </p>
           </div>
 
+          {/* Champion Spin Guardrail Banner */}
+          {hasChampionPending() && (
+            <div
+              className="flex items-center gap-3 px-5 py-4 rounded-xl animate-pulse"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,195,60,0.12) 0%, rgba(255,140,0,0.06) 100%)',
+                border: '1px solid rgba(255,195,60,0.4)',
+                boxShadow: '0 0 20px rgba(255,195,60,0.1)',
+              }}
+            >
+              <span className="text-2xl flex-shrink-0">👑</span>
+              <div>
+                <span className="block text-[11px] font-black font-mono uppercase tracking-wider text-amber-300">Tirada de Campeón Pendiente</span>
+                <p className="text-[10px] text-amber-200/70 font-mono mt-0.5">
+                  Debes seleccionar un modo y realizar la tirada del campeón antes de continuar con el draft.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Ruleta */}
             <button
-              onClick={() => { sounds.playCardReveal(); setDraftPhase('teams'); }}
+              onClick={() => {
+                if (hasChampionPending()) {
+                  showToast('👑 Debes realizar la tirada de campeón para continuar');
+                  return;
+                }
+                sounds.playCardReveal();
+                setDraftPhase('teams');
+              }}
               className="group relative p-8 rounded-2xl border border-neonCyan/30 bg-gradient-to-br from-cyan-950/30 to-darkBg hover:border-neonCyan hover:shadow-[0_0_30px_rgba(0,243,255,0.15)] transition-all duration-300 flex flex-col items-center text-center gap-4"
             >
               <div className="w-16 h-16 rounded-full bg-neonCyan/10 border border-neonCyan/30 flex items-center justify-center group-hover:bg-neonCyan/20 transition-all">
@@ -1441,7 +1528,14 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
 
             {/* Manual */}
             <button
-              onClick={() => { sounds.playSwoosh(); setDraftPhase('manual_setup'); }}
+              onClick={() => {
+                if (hasChampionPending()) {
+                  showToast('👑 Debes realizar la tirada de campeón para continuar');
+                  return;
+                }
+                sounds.playSwoosh();
+                setDraftPhase('manual_setup');
+              }}
               className="group relative p-8 rounded-2xl border border-neonGold/30 bg-gradient-to-br from-amber-950/30 to-darkBg hover:border-neonGold hover:shadow-[0_0_30px_rgba(255,195,60,0.15)] transition-all duration-300 flex flex-col items-center text-center gap-4"
             >
               <div className="w-16 h-16 rounded-full bg-neonGold/10 border border-neonGold/30 flex items-center justify-center group-hover:bg-neonGold/20 transition-all">
@@ -1674,6 +1768,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                       };
                       const advType = typeMap[champResult];
                       if (advType) {
+                        setChampSpinCompleted(true);
                         handleUseSpecialAdvantage(champOwnerName, advType);
                       }
                     }}
@@ -1684,6 +1779,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                 )}
                 <button
                   onClick={() => {
+                    setChampSpinCompleted(true);
                     setCurrentOptionTeamIndex(0);
                     setCurrentSpinNumber(1);
                     setDraftPhase('options');
@@ -1702,18 +1798,50 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
       {draftPhase === 'teams' && (
         <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-8 z-10">
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-panelBg/80 border border-neonCyan p-6 rounded-2xl shadow-neonCyan animate-pulse flex items-center justify-between">
-              <div>
-                <span className="text-[10px] text-neonCyan font-mono tracking-widest block uppercase">Turno de elección</span>
-                <span className="text-2xl font-black uppercase text-white tracking-tight">
-                  {turnSequence[currentTurnIndex]}
-                </span>
+            {/* ── TURN INDICATOR (EA FC style) ── */}
+            <div
+              className="rounded-2xl p-5 flex items-center justify-between"
+              style={{
+                background: 'linear-gradient(135deg, rgba(0,243,255,0.08) 0%, rgba(0,180,210,0.04) 100%)',
+                border: '1px solid rgba(0,243,255,0.35)',
+                boxShadow: '0 0 24px rgba(0,243,255,0.08), inset 0 1px 0 rgba(0,243,255,0.1)',
+              }}
+            >
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center font-black text-xl text-darkBg flex-shrink-0"
+                  style={{ background: 'linear-gradient(135deg, #00f3ff 0%, #00c8d6 100%)', boxShadow: '0 0 16px rgba(0,243,255,0.5)' }}
+                >
+                  {(turnSequence[currentTurnIndex] || '?').charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <span className="block text-[10px] font-mono tracking-[0.25em] uppercase" style={{ color: 'rgba(0,243,255,0.6)' }}>🎯 TURNO ACTUAL</span>
+                  <span className="block text-2xl font-black text-white uppercase tracking-tight mt-0.5">
+                    {turnSequence[currentTurnIndex]}
+                  </span>
+                </div>
               </div>
               <div className="text-right">
-                <span className="text-[10px] text-gray-500 font-mono tracking-widest block">PROGRESO DEL SORTEO</span>
-                <span className="text-lg font-mono font-bold">
-                  {currentTurnIndex + 1} / {turnSequence.length}
+                <span className="block text-[10px] font-mono tracking-widest uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>PROGRESO</span>
+                <span className="block text-lg font-mono font-black text-white">
+                  {currentTurnIndex + 1} <span style={{ color: 'rgba(0,243,255,0.5)' }}>/</span> {turnSequence.length}
                 </span>
+                {/* Mini player sequence */}
+                <div className="flex gap-1 mt-1 justify-end">
+                  {turnSequence.map((p, i) => (
+                    <div
+                      key={i}
+                      className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black transition-all"
+                      style={{
+                        background: i === currentTurnIndex ? '#00f3ff' : i < currentTurnIndex ? 'rgba(0,243,255,0.15)' : 'rgba(255,255,255,0.05)',
+                        color: i === currentTurnIndex ? '#030508' : i < currentTurnIndex ? 'rgba(0,243,255,0.5)' : 'rgba(255,255,255,0.2)',
+                        border: i === currentTurnIndex ? '1px solid #00f3ff' : '1px solid rgba(255,255,255,0.08)',
+                      }}
+                    >
+                      {p.charAt(0).toUpperCase()}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -1865,20 +1993,32 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
       {draftPhase === 'captains' && (
         <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-8 z-10">
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-panelBg border border-panelBorder p-6 rounded-2xl shadow-lg flex items-center justify-between">
-              <div>
-                <span className="text-[10px] text-gray-500 font-mono tracking-widest block">RULETA CAPITÁN DIAMANTE PARA:</span>
-                <h3 className="text-2xl font-black text-neonCyan tracking-tight uppercase mt-0.5">
-                  {tournament.teams[currentTeamIndex]?.name}
-                </h3>
-                <span className="text-xs text-gray-400 font-mono">
-                  Propietario: <span className="text-white font-bold">{tournament.teams[currentTeamIndex]?.owner}</span>
-                </span>
+            {/* ── TURN INDICATOR (EA FC style) ── */}
+            <div
+              className="rounded-2xl p-5 flex items-center justify-between"
+              style={{
+                background: 'linear-gradient(135deg, rgba(0,243,255,0.06) 0%, rgba(5,10,20,0.9) 100%)',
+                border: '1px solid rgba(0,243,255,0.3)',
+                boxShadow: '0 0 20px rgba(0,243,255,0.07)',
+              }}
+            >
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center font-black text-xl text-darkBg flex-shrink-0"
+                  style={{ background: 'linear-gradient(135deg, #00f3ff 0%, #00c8d6 100%)', boxShadow: '0 0 16px rgba(0,243,255,0.5)' }}
+                >
+                  {(tournament.teams[currentTeamIndex]?.owner || '?').charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <span className="block text-[10px] font-mono tracking-[0.25em] uppercase" style={{ color: 'rgba(0,243,255,0.6)' }}>💸 RULETA DIAMANTE — TURNO DE</span>
+                  <span className="block text-xl font-black text-white uppercase tracking-tight mt-0.5">{tournament.teams[currentTeamIndex]?.owner}</span>
+                  <span className="block text-sm font-bold mt-0.5" style={{ color: '#00f3ff' }}>{tournament.teams[currentTeamIndex]?.name}</span>
+                </div>
               </div>
               <div className="text-right">
-                <span className="text-[10px] text-gray-500 font-mono tracking-widest block">PROGRESO CAPITANES</span>
-                <span className="text-lg font-mono font-bold">
-                  {currentTeamIndex + 1} / {tournament.teams.length}
+                <span className="block text-[10px] font-mono tracking-widest uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>CAPITANES</span>
+                <span className="block text-lg font-mono font-black text-white">
+                  {currentTeamIndex + 1} <span style={{ color: 'rgba(0,243,255,0.5)' }}>/</span> {tournament.teams.length}
                 </span>
               </div>
             </div>
@@ -1933,6 +2073,18 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                     </button>
                   )}
                 </div>
+              </div>
+            ) : availableDiamonds.length === 0 ? (
+              <div
+                className="flex flex-col items-center justify-center py-12 px-6 rounded-2xl text-center"
+                style={{
+                  background: 'rgba(0,0,0,0.4)',
+                  border: '1px solid rgba(0,243,255,0.1)',
+                }}
+              >
+                <span className="text-4xl mb-3">💸</span>
+                <span className="text-lg font-black text-white font-mono uppercase tracking-wider">Pool Diamante Agotado</span>
+                <p className="text-xs text-gray-500 font-mono mt-2">No quedan leyendas Diamante disponibles para asignar.</p>
               </div>
             ) : (
               <RouletteWheel
@@ -2597,6 +2749,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
             <button
               onClick={() => {
                 setModalType(null);
+                setChampSpinCompleted(true);
                 // If we were in champion_advantage phase, advance to options now
                 if (draftPhase === 'champion_advantage') {
                   setCurrentOptionTeamIndex(0);
@@ -2611,8 +2764,36 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
           </div>
         </div>
       )}
+
+      {/* ================= TOAST NOTIFICATION ================= */}
+      {toastVisible && (
+        <div
+          className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[300] flex items-center gap-3 px-6 py-3.5 rounded-2xl font-mono font-bold text-sm animate-fade-in shadow-2xl"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,195,60,0.18) 0%, rgba(20,10,0,0.96) 100%)',
+            border: '1px solid rgba(255,195,60,0.5)',
+            boxShadow: '0 0 30px rgba(255,195,60,0.2), 0 8px 32px rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(16px)',
+            color: '#ffc33c',
+          }}
+        >
+          <span className="text-xl">👑</span>
+          <span>{toastMessage}</span>
+          <button
+            onClick={() => setToastVisible(false)}
+            className="ml-2 text-amber-400/60 hover:text-amber-300 transition-colors text-lg leading-none"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* ================= RULES ENCYCLOPEDIA MODAL ================= */}
+      {showRules && <RulesEncyclopedia onClose={() => setShowRules(false)} />}
+
     </div>
   );
 };
 
 export default DraftRoom;
+

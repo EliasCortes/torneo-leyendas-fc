@@ -144,3 +144,77 @@ export const OPTION_ROULETTE = [
   "Tirar Ruleta Diamante",
   "Comodín Bronce"
 ];
+
+// Equipos agrupados por País de origen
+export const TEAMS_BY_COUNTRY = {
+  "🇪🇸 España": [
+    "Real Madrid", "FC Barcelona", "Atletico de Madrid", "Sevilla", "Villarreal FC",
+    "Athletic Club", "Real Betis", "Valencia FC", "Real Sociedad", "Rayo Vallecano",
+    "Getafe FC", "RCD Mallorca", "Alaves", "CA Osasuna", "RC Celta",
+    "RCD Espayol", "Elche", "Levante", "Oviedo"
+  ],
+  "🇦🇷 Argentina": [
+    "Boca Juniors", "River Plate", "Racing Club", "Independiente", "Rosario Central",
+    "Newells", "Lanus", "Estudiantes"
+  ],
+  "🇩🇪 Alemania": [
+    "FC Bayern Munchen", "Borussia Dortmund", "Bayer Leverkusen", "RB Leipzig",
+    "VFB Stuttgart", "Borussia M'gladbach", "Hamburgo", "Union Berlin",
+    "SC Freiburg", "FC Augsburg", "VFL Wolfsburg", "FSV Mainz 05",
+    "TSG Hoffenheim", "SV Werder Bremen", "FC Koln", "ST Pauli", "Heidenheim"
+  ],
+  "🇮🇹 Italia": [
+    "Inter de Milan", "AC Milan", "Juventus", "Roma", "Lazio",
+    "Napoli", "Fiorentina", "Bolonia", "Torino", "Atalanta Bergamo",
+    "Hellas Verona", "Udinese", "Genoa", "Cagliari", "Parma",
+    "Sassuolo", "Cremonense", "Lecce", "Pisa", "Como 1907"
+  ],
+  "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra": [
+    "Manchester City", "Arsenal", "Liverpool", "Chelsea", "Manchester United",
+    "Spurs", "Newcastle UTD", "Aston Villa", "West Ham UTD", "Crystal Palace",
+    "Everton", "Wolves", "Brighton", "Brentford", "Fulham",
+    "Nottingham Forest", "Leeds", "Burnley", "Sunderland", "AFC Bournemouth"
+  ],
+  "🇫🇷 Francia": [
+    "PSG", "AS Monaco", "Olimpique Lyon", "O.Marsella", "LOSC Lille",
+    "RC Lens", "Stade Rennais FC", "OGC Niza", "Toulouse", "Stade Brestois",
+    "AJ Auxerre", "Angers SCO", "FC Nantes", "Paris FC", "FC Lorient",
+    "Le Havre AC", "RC Estrasburgo", "FC Metz"
+  ],
+  "🇳🇱 Países Bajos": [
+    "Ajax", "PSV Eindhoven", "Feyenoord", "AZ Alkmaar", "FC Twente", "Utrecht"
+  ],
+  "🇵🇹 Portugal": [
+    "FC Porto", "Benfica", "Sporting CP", "Braga", "Famalicio"
+  ],
+  "🇹🇷 Turquía": [
+    "Fenerbahce", "Galatasaray", "Besiktas"
+  ],
+  "🇬🇷 Grecia": [
+    "Olimpiacos", "Panathinaikos", "PAOK FC", "AEK Atenas"
+  ],
+  "🇧🇪 Bélgica": [
+    "Anderlecht", "Club Brujas", "KAA Gent", "KRC Genk", "R.Union ST.-G"
+  ],
+  "🇨🇿 Rep. Checa": [
+    "Slavia de Praga", "Sparta de Praga", "Viktoria Pilzen"
+  ],
+  "🏴󠁧󠁢󠁳󠁣󠁴󠁿 Escocia": [
+    "Celtic", "Rangers"
+  ],
+  "🇺🇦 Ucrania": [
+    "Shaktar Donestsk", "Dinamo de Kiev"
+  ],
+  "🇦🇹 Austria": [
+    "RB Salzburgo"
+  ],
+  "🇭🇷 Croacia": [
+    "Dinamo de Zagreb"
+  ],
+  "🇸🇪 Suecia": [
+    "Malmo FF"
+  ],
+  "🇨🇾 Chipre": [
+    "Apoel"
+  ]
+};

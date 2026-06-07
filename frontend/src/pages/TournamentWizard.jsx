@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import sounds from '../utils/audio';
 import ChampionsRouletteModal from '../components/ChampionsRouletteModal';
 import { getConstants, createTournament } from '../services/tournamentService';
+import PlayerTagInput from '../components/PlayerTagInput';
 
 const TournamentWizard = ({ onCreated, onBack }) => {
   const [step, setStep] = useState(1);
-  const [constants, setConstants] = useState({ teams: [], diamond_legends: [] });
+  const [constants, setConstants] = useState({ teams: [], diamond_legends: [], all_legends: [] });
   
   // Step 1 State: Initial Config
   const [name, setName] = useState('Superliga Leyendas');
@@ -35,7 +36,7 @@ const TournamentWizard = ({ onCreated, onBack }) => {
   const [prevChampTeam, setPrevChampTeam] = useState('');
   const [prevChampOwner, setPrevChampOwner] = useState('Alvaro');
   const [prevCaptain, setPrevCaptain] = useState('');
-  const [retainedPlayers, setRetainedPlayers] = useState('');
+  const [retainedPlayers, setRetainedPlayers] = useState([]);
   const [prevBenefits, setPrevBenefits] = useState('');
 
   // Clear roulette result if the champion team changes
@@ -53,10 +54,22 @@ const TournamentWizard = ({ onCreated, onBack }) => {
     const teams = data.teams || [];
     const diamond = data.diamond_legends || [];
     
+    // Build array of all legends for autocomplete
+    const allLegends = [
+      ...(data.diamond_legends || []),
+      ...(data.gold_legends || []),
+      ...(data.silver_legends || []),
+      ...(data.bronze_legends || [])
+    ];
+    
     // Sort teams alphabetically (A-Z)
     const sortedTeams = [...teams].sort((a, b) => a.localeCompare(b));
     
-    setConstants({ teams: sortedTeams, diamond_legends: diamond });
+    setConstants({ 
+      teams: sortedTeams, 
+      diamond_legends: diamond,
+      all_legends: allLegends
+    });
     if (sortedTeams.length > 0) setPrevChampTeam(sortedTeams[0]);
     if (diamond.length > 0) setPrevCaptain(diamond[0]);
   }, []);
@@ -207,7 +220,7 @@ const TournamentWizard = ({ onCreated, onBack }) => {
         prevChampTeam: hasPrevChampion ? prevChampTeam : null,
         prevChampOwner: hasPrevChampion ? prevChampOwner : null,
         prevCaptain: hasPrevChampion ? prevCaptain : null,
-        retainedPlayers: hasPrevChampion ? retainedPlayers.split(',').map(s => s.trim()).filter(Boolean) : [],
+        retainedPlayers: hasPrevChampion ? retainedPlayers : [],
         prevBenefits: hasPrevChampion ? championsRouletteResult : null,
         championsRouletteResult: hasPrevChampion ? championsRouletteResult : null,
         wildcardBonuses: hasPrevChampion ? wildcardBonuses : { topScorer: '', topAssistant: '', bestGoal: '' },
@@ -423,16 +436,14 @@ const TournamentWizard = ({ onCreated, onBack }) => {
 
                 {/* Retained players (comma separated list) */}
                 <div className="flex flex-col">
-                  <label className="text-xs text-gray-400 font-mono mb-1.5">JUGADORES CONSERVADOS (Separar por comas)</label>
-                  <input
-                    type="text"
-                    value={retainedPlayers}
-                    onChange={(e) => setRetainedPlayers(e.target.value)}
-                    className="bg-darkBg border border-panelBorder p-2.5 rounded-lg text-sm text-white focus:outline-none focus:border-neonCyan text-xs"
-                    placeholder="Ej: Mbappe, Van Dijk, Lampard"
+                  <label className="text-xs text-gray-400 font-mono mb-1.5">JUGADORES CONSERVADOS</label>
+                  <PlayerTagInput 
+                    selectedPlayers={retainedPlayers} 
+                    onChange={setRetainedPlayers} 
+                    suggestions={constants.all_legends} 
                   />
                   <span className="text-[10px] text-gray-500 mt-1">
-                    Estos jugadores se reservarán directamente en la plantilla de este equipo.
+                    Escribe para buscar leyendas o añade el nombre de un jugador actual y pulsa Enter. Estos jugadores se reservarán directamente en la plantilla de este equipo.
                   </span>
                 </div>
 

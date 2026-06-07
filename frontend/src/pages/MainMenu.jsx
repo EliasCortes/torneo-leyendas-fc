@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import sounds from '../utils/audio';
 import { listTournaments as fetchTournamentsList, getTournament, deleteTournament } from '../services/tournamentService';
+import RulesEncyclopedia from '../components/RulesEncyclopedia';
 
 const MainMenu = ({ onNewTournament, onLoadTournament }) => {
   const [showLoadModal, setShowLoadModal] = useState(false);
+  const [showRules, setShowRules] = useState(false);
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -124,6 +126,33 @@ const MainMenu = ({ onNewTournament, onLoadTournament }) => {
         </div>
       </div>
 
+      {/* REGLAS Y BASE DE DATOS */}
+      <div className="z-10 mt-6 flex justify-center">
+        <button
+          onClick={() => { sounds.playSwoosh(); setShowRules(true); }}
+          className="group flex items-center gap-2.5 px-6 py-3 rounded-full font-mono font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:scale-105 active:scale-95"
+          style={{
+            background: 'linear-gradient(135deg, rgba(11,19,36,0.85) 0%, rgba(8,14,25,0.9) 100%)',
+            border: '1px solid rgba(0,243,255,0.2)',
+            color: 'rgba(0,243,255,0.7)',
+            boxShadow: '0 0 20px rgba(0,243,255,0.04)',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.borderColor = 'rgba(0,243,255,0.5)';
+            e.currentTarget.style.color = '#00f3ff';
+            e.currentTarget.style.boxShadow = '0 0 24px rgba(0,243,255,0.12)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.borderColor = 'rgba(0,243,255,0.2)';
+            e.currentTarget.style.color = 'rgba(0,243,255,0.7)';
+            e.currentTarget.style.boxShadow = '0 0 20px rgba(0,243,255,0.04)';
+          }}
+        >
+          <span className="text-base">📚</span>
+          Reglas &amp; Base de Datos
+        </button>
+      </div>
+
       {/* FOOTER */}
       <div className="absolute bottom-8 text-[10px] text-gray-600 font-mono tracking-widest">
         DEDICADO AL ENTRETENIMIENTO ENTRE AMIGOS
@@ -238,6 +267,9 @@ const MainMenu = ({ onNewTournament, onLoadTournament }) => {
           </div>
         </div>
       )}
+
+      {/* RULES ENCYCLOPEDIA MODAL */}
+      {showRules && <RulesEncyclopedia onClose={() => setShowRules(false)} />}
     </div>
   );
 };
