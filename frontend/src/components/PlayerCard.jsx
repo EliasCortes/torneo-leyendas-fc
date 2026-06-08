@@ -7,7 +7,7 @@ const PlayerCard = ({ name, category, position = 'Sin definir', rating }) => {
   let textClass = 'text-gray-300';
   let rarityBg = 'card-hologram-actual';
   let rarityTitle = 'ACTUAL';
-  
+
   // Assign default ratings if not specified
   let defaultRating = rating || 80;
 
@@ -87,7 +87,7 @@ const PlayerCard = ({ name, category, position = 'Sin definir', rating }) => {
             {posAbbr}
           </span>
         </div>
-        
+
         {/* Decorative Badge */}
         <div className="opacity-40">
           <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
@@ -98,12 +98,11 @@ const PlayerCard = ({ name, category, position = 'Sin definir', rating }) => {
 
       {/* Card Center (Player Silhouette / Avatar) */}
       <div className="relative w-20 h-20 flex items-center justify-center -mt-2 z-10">
-        <div className={`absolute inset-0 rounded-full blur-md opacity-25 ${
-          category === 'Diamante' ? 'bg-neonCyan' : 
-          category === 'Oro' ? 'bg-neonGold' : 
-          category === 'Plata' ? 'bg-neonSilver' : 
-          category === 'Bronce' ? 'bg-neonBronze' : 'bg-transparent'
-        }`} />
+        <div className={`absolute inset-0 rounded-full blur-md opacity-25 ${category === 'Diamante' ? 'bg-neonCyan' :
+            category === 'Oro' ? 'bg-neonGold' :
+              category === 'Plata' ? 'bg-neonSilver' :
+                category === 'Bronce' ? 'bg-neonBronze' : 'bg-transparent'
+          }`} />
         <svg className="w-16 h-16 text-gray-500/80" fill="currentColor" viewBox="0 0 24 24">
           <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
         </svg>
@@ -118,7 +117,7 @@ const PlayerCard = ({ name, category, position = 'Sin definir', rating }) => {
           {rarityTitle}
         </span>
       </div>
-      
+
       {/* Sparkles for Diamond/Gold cards */}
       {(category === 'Diamante' || category === 'Oro') && (
         <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-white animate-ping opacity-75" />

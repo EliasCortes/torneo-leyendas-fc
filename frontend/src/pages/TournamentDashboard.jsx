@@ -8,11 +8,11 @@ import { saveTournament, deleteTournament } from '../services/tournamentService'
 const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
   const [tournament, setTournament] = useState(initialTournament);
   const [activeTab, setActiveTab] = useState('standings'); // 'standings', 'matches', 'teams', 'stats', 'playoffs'
-  
+
   // Selection pointers
   const [selectedTeamName, setSelectedTeamName] = useState('');
   const [selectedMatch, setSelectedMatch] = useState(null);
-  
+
   // Results inputs state
   const [homeScore, setHomeScore] = useState(0);
   const [awayScore, setAwayScore] = useState(0);
@@ -25,7 +25,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
   const [homePenalties, setHomePenalties] = useState('');
   const [awayPenalties, setAwayPenalties] = useState('');
   const [confirmModal, setConfirmModal] = useState(null); // { title, message, onConfirm, onCancel }
-  
+
   const { getLogoUrl, loading: logosLoading } = useTeamLogos();
 
   // Helper to find team owner
@@ -83,11 +83,11 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
       if (m.result && !m.playoff) {
         const homeTeam = standings[m.home];
         const awayTeam = standings[m.away];
-        
+
         if (homeTeam && awayTeam) {
           homeTeam.played += 1;
           awayTeam.played += 1;
-          
+
           homeTeam.gf += m.result.homeGoals;
           homeTeam.ga += m.result.awayGoals;
           awayTeam.gf += m.result.awayGoals;
@@ -126,9 +126,9 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
         if (b.pts !== a.pts) return b.pts - a.pts;
 
         // 2. Head-to-Head (Enfrentamiento directo)
-        const h2hMatch = tournament.matches.find(m => 
-          !m.playoff && 
-          m.result && 
+        const h2hMatch = tournament.matches.find(m =>
+          !m.playoff &&
+          m.result &&
           ((m.home === a.name && m.away === b.name) || (m.home === b.name && m.away === a.name))
         );
         if (h2hMatch) {
@@ -200,26 +200,26 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
   const handleOpenMatchResult = (match) => {
     sounds.playSwoosh();
     setSelectedMatch(match);
-    
+
     const hScore = match.result ? match.result.homeGoals : 0;
     const aScore = match.result ? match.result.awayGoals : 0;
-    
+
     setHomeScore(hScore);
     setAwayScore(aScore);
     setMatchMVP(match.result ? match.result.mvp : '');
-    
+
     const penalties = match.result ? match.result.penalties : null;
     setHomePenalties(penalties ? penalties.home : '');
     setAwayPenalties(penalties ? penalties.away : '');
-    
+
     const existingScorers = match.result && match.result.scorers ? match.result.scorers : [];
     const existingAssists = match.result && match.result.assists ? match.result.assists : [];
-    
+
     const homeTeamObj = tournament.teams.find(t => t.name === match.home);
     const awayTeamObj = tournament.teams.find(t => t.name === match.away);
     const homePlayers = homeTeamObj ? homeTeamObj.legends.map(p => p.name.toUpperCase()) : [];
     const awayPlayers = awayTeamObj ? awayTeamObj.legends.map(p => p.name.toUpperCase()) : [];
-    
+
     const hScorers = [];
     const aScorers = [];
     existingScorers.forEach(name => {
@@ -237,7 +237,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
     });
     while (hScorers.length < hScore) hScorers.push('');
     while (aScorers.length < aScore) aScorers.push('');
-    
+
     const hAssists = [];
     const aAssists = [];
     existingAssists.forEach(name => {
@@ -255,7 +255,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
     });
     while (hAssists.length < hScore) hAssists.push('');
     while (aAssists.length < aScore) aAssists.push('');
-    
+
     setHomeScorers(hScorers);
     setAwayScorers(aScorers);
     setHomeAssists(hAssists);
@@ -303,7 +303,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
   // Save Match results
   const handleSaveMatchResult = async () => {
     sounds.playSuccess();
-    
+
     const hScore = parseInt(homeScore) || 0;
     const aScore = parseInt(awayScore) || 0;
     let winnerName = null;
@@ -334,7 +334,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
     if (hScore > 0) {
       for (let i = 0; i < hScore; i++) {
         if (!homeScorers[i] || !homeScorers[i].trim()) {
-          alert(`Por favor, introduce el nombre del goleador ${i+1} para ${selectedMatch.home}.`);
+          alert(`Por favor, introduce el nombre del goleador ${i + 1} para ${selectedMatch.home}.`);
           return;
         }
         const scorer = (homeScorers[i] || '').trim().toLowerCase();
@@ -348,7 +348,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
     if (aScore > 0) {
       for (let i = 0; i < aScore; i++) {
         if (!awayScorers[i] || !awayScorers[i].trim()) {
-          alert(`Por favor, introduce el nombre del goleador ${i+1} para ${selectedMatch.away}.`);
+          alert(`Por favor, introduce el nombre del goleador ${i + 1} para ${selectedMatch.away}.`);
           return;
         }
         const scorer = (awayScorers[i] || '').trim().toLowerCase();
@@ -403,7 +403,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
 
     try {
       await saveTournament(tournament.filename, updatedTournament);
-      
+
       setTournament(updatedTournament);
       setSelectedMatch(null);
     } catch (err) {
@@ -446,7 +446,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
 
     const search = (idx, currentPenalty) => {
       if (currentPenalty > minPenalty) return; // Pruning
-      
+
       if (idx === list1.length) {
         if (currentPenalty < minPenalty) {
           minPenalty = currentPenalty;
@@ -461,7 +461,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
       for (let i = 0; i < list2.length; i++) {
         if (used[i]) continue;
         const team2 = t2[i];
-        
+
         let penalty = 0;
         if (team1 && team2) {
           if (team1.group === team2.group) penalty += 10000;
@@ -470,9 +470,9 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
 
         used[i] = true;
         currentPerm.push(list2[i]);
-        
+
         search(idx + 1, currentPenalty + penalty);
-        
+
         currentPerm.pop();
         used[i] = false;
       }
@@ -490,7 +490,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
     const standings = computeStandings();
     const playoffMatches = [];
     const teamsCount = tournament.teams.length;
-    
+
     if (teamsCount === 8) {
       const a1 = standings.A[0]?.name;
       const a2 = standings.A[1]?.name;
@@ -503,7 +503,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
       } else {
         matched = findBestMatching([a1, b1], [a2, b2], pairingMode);
       }
-      
+
       playoffMatches.push({ id: 'SF_1', playoff: true, round: 'Semifinales', home: a1, away: matched[0], result: null });
       playoffMatches.push({ id: 'SF_2', playoff: true, round: 'Semifinales', home: b1, away: matched[1], result: null });
       playoffMatches.push({ id: 'F', playoff: true, round: 'Final', home: 'Ganador SF_1', away: 'Ganador SF_2', result: null });
@@ -525,15 +525,15 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
       } else {
         matched = findBestMatching(list1, [a2, b2, c2, d2], pairingMode);
       }
-      
+
       playoffMatches.push({ id: 'QF_1', playoff: true, round: 'Cuartos de Final', home: list1[0], away: matched[0], result: null });
       playoffMatches.push({ id: 'QF_2', playoff: true, round: 'Cuartos de Final', home: list1[1], away: matched[1], result: null });
       playoffMatches.push({ id: 'QF_3', playoff: true, round: 'Cuartos de Final', home: list1[2], away: matched[2], result: null });
       playoffMatches.push({ id: 'QF_4', playoff: true, round: 'Cuartos de Final', home: list1[3], away: matched[3], result: null });
-      
+
       playoffMatches.push({ id: 'SF_1', playoff: true, round: 'Semifinales', home: 'Ganador QF_1', away: 'Ganador QF_2', result: null });
       playoffMatches.push({ id: 'SF_2', playoff: true, round: 'Semifinales', home: 'Ganador QF_3', away: 'Ganador QF_4', result: null });
-      
+
       playoffMatches.push({ id: 'F', playoff: true, round: 'Final', home: 'Ganador SF_1', away: 'Ganador SF_2', result: null });
     }
     else if (teamsCount === 32) {
@@ -618,10 +618,10 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
       }
 
       for (let i = 1; i <= 8; i++) {
-        playoffMatches.push({ id: `R16_${i}`, playoff: true, round: 'Octavos de Final', home: `Ganador R32_${i*2 - 1}`, away: `Ganador R32_${i*2}`, result: null });
+        playoffMatches.push({ id: `R16_${i}`, playoff: true, round: 'Octavos de Final', home: `Ganador R32_${i * 2 - 1}`, away: `Ganador R32_${i * 2}`, result: null });
       }
       for (let i = 1; i <= 4; i++) {
-        playoffMatches.push({ id: `QF_${i}`, playoff: true, round: 'Cuartos de Final', home: `Ganador R16_${i*2 - 1}`, away: `Ganador R16_${i*2}`, result: null });
+        playoffMatches.push({ id: `QF_${i}`, playoff: true, round: 'Cuartos de Final', home: `Ganador R16_${i * 2 - 1}`, away: `Ganador R16_${i * 2}`, result: null });
       }
       playoffMatches.push({ id: 'SF_1', playoff: true, round: 'Semifinales', home: 'Ganador QF_1', away: 'Ganador QF_2', result: null });
       playoffMatches.push({ id: 'SF_2', playoff: true, round: 'Semifinales', home: 'Ganador QF_3', away: 'Ganador QF_4', result: null });
@@ -675,7 +675,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
     if (!selectedMatch) return [];
     const homeTeamObj = tournament.teams.find(t => t.name === selectedMatch.home);
     const awayTeamObj = tournament.teams.find(t => t.name === selectedMatch.away);
-    
+
     const players = [];
     if (homeTeamObj) {
       homeTeamObj.legends.forEach(p => players.push({ name: p.name, team: homeTeamObj.name }));
@@ -753,43 +753,38 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
         <div className="flex bg-darkBg border border-panelBorder p-1 rounded-full text-xs font-mono">
           <button
             onClick={() => { sounds.playTick(); setActiveTab('standings'); }}
-            className={`px-5 py-2 rounded-full font-bold transition-all ${
-              activeTab === 'standings' ? 'bg-neonCyan text-darkBg' : 'text-gray-400 hover:text-white'
-            }`}
+            className={`px-5 py-2 rounded-full font-bold transition-all ${activeTab === 'standings' ? 'bg-neonCyan text-darkBg' : 'text-gray-400 hover:text-white'
+              }`}
           >
             CLASIFICACIÓN
           </button>
           <button
             onClick={() => { sounds.playTick(); setActiveTab('matches'); }}
-            className={`px-5 py-2 rounded-full font-bold transition-all ${
-              activeTab === 'matches' ? 'bg-neonCyan text-darkBg' : 'text-gray-400 hover:text-white'
-            }`}
+            className={`px-5 py-2 rounded-full font-bold transition-all ${activeTab === 'matches' ? 'bg-neonCyan text-darkBg' : 'text-gray-400 hover:text-white'
+              }`}
           >
             PARTIDOS
           </button>
           {(tournament.status === 'Playoffs' || tournament.status === 'Terminado') && (
             <button
               onClick={() => { sounds.playTick(); setActiveTab('playoffs'); }}
-              className={`px-5 py-2 rounded-full font-bold transition-all ${
-                activeTab === 'playoffs' ? 'bg-neonCyan text-darkBg' : 'text-gray-400 hover:text-white'
-              }`}
+              className={`px-5 py-2 rounded-full font-bold transition-all ${activeTab === 'playoffs' ? 'bg-neonCyan text-darkBg' : 'text-gray-400 hover:text-white'
+                }`}
             >
               ELIMINATORIAS
             </button>
           )}
           <button
             onClick={() => { sounds.playTick(); setActiveTab('teams'); }}
-            className={`px-5 py-2 rounded-full font-bold transition-all ${
-              activeTab === 'teams' ? 'bg-neonCyan text-darkBg' : 'text-gray-400 hover:text-white'
-            }`}
+            className={`px-5 py-2 rounded-full font-bold transition-all ${activeTab === 'teams' ? 'bg-neonCyan text-darkBg' : 'text-gray-400 hover:text-white'
+              }`}
           >
             PLANTILLAS
           </button>
           <button
             onClick={() => { sounds.playTick(); setActiveTab('stats'); }}
-            className={`px-5 py-2 rounded-full font-bold transition-all ${
-              activeTab === 'stats' ? 'bg-neonCyan text-darkBg' : 'text-gray-400 hover:text-white'
-            }`}
+            className={`px-5 py-2 rounded-full font-bold transition-all ${activeTab === 'stats' ? 'bg-neonCyan text-darkBg' : 'text-gray-400 hover:text-white'
+              }`}
           >
             ESTADÍSTICAS
           </button>
@@ -815,7 +810,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
           >
             ⚠️ REINICIAR TORNEO
           </button>
-          
+
           <button
             onClick={() => {
               setConfirmModal({
@@ -835,7 +830,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
 
       {/* DASHBOARD CONTENT BODY */}
       <div className="w-full max-w-6xl p-6 z-10 flex-1">
-        
+
         {/* ================= TAB 1: STANDINGS / CLASIFICACION ================= */}
         {activeTab === 'standings' && (
           <div className="space-y-6 animate-fade-in">
@@ -844,7 +839,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
               <div className="w-full bg-gradient-to-r from-neonGold/10 to-yellow-500/5 border border-neonGold p-6 rounded-2xl shadow-neonGold text-center">
                 <span className="text-[10px] text-neonGold font-mono tracking-widest block uppercase mb-1">¡FASE DE GRUPOS TERMINADA!</span>
                 <h4 className="text-lg font-black text-white uppercase font-mono mb-3">La fase de grupos ha finalizado con éxito. Genera las llaves de Playoff.</h4>
-                
+
                 <div className="flex flex-col items-center gap-2 mb-5">
                   <label className="text-[11px] text-gray-400 font-mono uppercase tracking-wider">Modo de Emparejamiento</label>
                   <select
@@ -878,7 +873,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                       Fase de grupos
                     </span>
                   </div>
-                  
+
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs font-mono">
                       <thead>
@@ -903,13 +898,12 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                           // If 32 teams format, all qualify. If 8/16, top 2 qualify.
                           const qualifyingLimit = tournament.teams.length === 32 ? 4 : 2;
                           const qualifies = idx < qualifyingLimit;
-                          
+
                           return (
                             <tr
                               key={t.name}
-                              className={`border-b border-panelBorder/30 last:border-0 hover:bg-white/5 transition-colors ${
-                                qualifies ? 'bg-cyan-950/10' : ''
-                              }`}
+                              className={`border-b border-panelBorder/30 last:border-0 hover:bg-white/5 transition-colors ${qualifies ? 'bg-cyan-950/10' : ''
+                                }`}
                             >
                               <td className="py-3 font-bold text-center w-8">
                                 <span className={qualifies ? 'text-neonCyan font-black' : 'text-gray-500'}>
@@ -929,9 +923,8 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                               <td className="text-center font-bold text-gray-300">{t.lost}</td>
                               <td className="text-center font-bold text-gray-300">{t.gf}</td>
                               <td className="text-center font-bold text-gray-300">{t.ga}</td>
-                              <td className={`text-center font-bold ${
-                                dg > 0 ? 'text-green-400' : dg < 0 ? 'text-red-400' : 'text-gray-500'
-                              }`}>
+                              <td className={`text-center font-bold ${dg > 0 ? 'text-green-400' : dg < 0 ? 'text-red-400' : 'text-gray-500'
+                                }`}>
                                 {dgSign}
                               </td>
                               <td className="text-center font-black text-neonCyan text-sm">{t.pts}</td>
@@ -954,7 +947,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
             {[1, 2, 3].map(roundNum => {
               const roundMatches = tournament.matches.filter(m => !m.playoff && m.round === roundNum);
               if (roundMatches.length === 0) return null;
-              
+
               return (
                 <div key={roundNum} className="bg-panelBg border border-panelBorder p-6 rounded-2xl shadow-lg">
                   <div className="flex items-center gap-3 border-b border-panelBorder pb-3 mb-4">
@@ -980,11 +973,10 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                                 {match.home}
                               </span>
                             </div>
-                            <span className={`text-lg font-black font-mono ml-2 ${
-                              match.result
+                            <span className={`text-lg font-black font-mono ml-2 ${match.result
                                 ? match.result.homeGoals > match.result.awayGoals ? 'text-neonCyan' : 'text-gray-400'
                                 : 'text-gray-300'
-                            }`}>
+                              }`}>
                               {match.result ? match.result.homeGoals : '-'}
                             </span>
                           </div>
@@ -997,11 +989,10 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                                 {match.away}
                               </span>
                             </div>
-                            <span className={`text-lg font-black font-mono ml-2 ${
-                              match.result
+                            <span className={`text-lg font-black font-mono ml-2 ${match.result
                                 ? match.result.awayGoals > match.result.homeGoals ? 'text-neonCyan' : 'text-gray-400'
                                 : 'text-gray-300'
-                            }`}>
+                              }`}>
                               {match.result ? match.result.awayGoals : '-'}
                             </span>
                           </div>
@@ -1011,7 +1002,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                           <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded bg-panelBorder text-gray-400">
                             GRUPO {match.group}
                           </span>
-                          
+
                           {match.result ? (
                             <span className="text-[9px] text-green-400 font-bold mt-2">
                               ✓ HECHO
@@ -1047,13 +1038,13 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
               {['Dieciseisavos', 'Octavos de Final', 'Cuartos de Final', 'Semifinales', 'Final'].map(roundName => {
                 const roundMatches = getRoundMatches(roundName);
                 if (roundMatches.length === 0) return null;
-                
+
                 return (
                   <div key={roundName} className="flex flex-col gap-4 min-w-[280px] bg-panelBg/40 border border-panelBorder/60 p-4 rounded-2xl h-full">
                     <h4 className="text-center font-extrabold text-neonCyan text-xs tracking-wider uppercase border-b border-panelBorder/30 pb-2">
                       {roundName}
                     </h4>
-                    
+
                     <div className="flex flex-col justify-around flex-1 gap-4">
                       {roundMatches.map(match => {
                         const isPlayable = !match.home.startsWith('Ganador') && !match.away.startsWith('Ganador');
@@ -1061,18 +1052,17 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                         const isAwayWinner = match.result && match.result.winner === match.away;
                         const homeOwner = getTeamOwner(match.home);
                         const awayOwner = getTeamOwner(match.away);
-                        
+
                         return (
                           <div
                             key={match.id}
                             onClick={() => {
                               if (isPlayable) handleOpenMatchResult(match);
                             }}
-                            className={`p-3.5 rounded-xl border flex flex-col gap-2 transition-all relative ${
-                              isPlayable
+                            className={`p-3.5 rounded-xl border flex flex-col gap-2 transition-all relative ${isPlayable
                                 ? 'cursor-pointer hover:border-neonCyan hover:bg-neonCyan/5 hover:shadow-[0_0_15px_rgba(0,243,255,0.15)]'
                                 : 'opacity-55 cursor-not-allowed'
-                            } ${match.result ? 'border-green-500/40 bg-green-950/10 shadow-[0_0_10px_rgba(16,185,129,0.05)]' : 'border-panelBorder bg-darkBg/80'}`}
+                              } ${match.result ? 'border-green-500/40 bg-green-950/10 shadow-[0_0_10px_rgba(16,185,129,0.05)]' : 'border-panelBorder bg-darkBg/80'}`}
                           >
                             <div className="flex justify-between items-center text-[9px] text-gray-500 font-bold uppercase mb-1 border-b border-panelBorder/20 pb-1">
                               <span>{match.id}</span>
@@ -1084,81 +1074,75 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                                 <span className="text-gray-600 tracking-wider">PENDIENTE</span>
                               )}
                             </div>
-                            
-                            {/* Home team - Playoff */}
-                             <div className="flex justify-between items-center min-h-[22px]">
-                               <div className="flex items-center gap-1.5 truncate">
-                                 {match.result && isHomeWinner && <span className="text-neonCyan text-[10px] animate-pulse">▶</span>}
-                                 {isPlayable && (
-                                   <LogoEquipo url={getLogoUrl(match.home)} nombreEquipo={match.home} size={18} />
-                                 )}
-                                 <div className="flex flex-col truncate">
-                                   <span className={`font-bold text-xs truncate max-w-[140px] ${
-                                     match.result
-                                       ? isHomeWinner
-                                         ? 'text-neonCyan font-black'
-                                         : 'text-gray-500 line-through'
-                                       : 'text-gray-300'
-                                   }`}>
-                                     {match.home}
-                                   </span>
-                                   {homeOwner && (
-                                     <span className={`text-[8px] font-bold uppercase tracking-wider ${
-                                       match.result && !isHomeWinner ? 'text-gray-600' : 'text-neonGold/80'
-                                     }`}>
-                                       {homeOwner}
-                                     </span>
-                                   )}
-                                 </div>
-                               </div>
-                               <span className={`font-extrabold text-sm text-right ${
-                                 match.result
-                                   ? isHomeWinner
-                                     ? 'text-neonCyan font-black'
-                                     : 'text-gray-500'
-                                   : 'text-gray-400'
-                               }`}>
-                                 {match.result ? match.result.homeGoals : '-'}
-                               </span>
-                             </div>
 
-                             {/* Away team - Playoff */}
-                             <div className="flex justify-between items-center border-t border-panelBorder/30 pt-1.5 min-h-[22px]">
-                               <div className="flex items-center gap-1.5 truncate">
-                                 {match.result && isAwayWinner && <span className="text-neonCyan text-[10px] animate-pulse">▶</span>}
-                                 {isPlayable && (
-                                   <LogoEquipo url={getLogoUrl(match.away)} nombreEquipo={match.away} size={18} />
-                                 )}
-                                 <div className="flex flex-col truncate">
-                                   <span className={`font-bold text-xs truncate max-w-[140px] ${
-                                     match.result
-                                       ? isAwayWinner
-                                         ? 'text-neonCyan font-black'
-                                         : 'text-gray-500 line-through'
-                                       : 'text-gray-300'
-                                   }`}>
-                                     {match.away}
-                                   </span>
-                                   {awayOwner && (
-                                     <span className={`text-[8px] font-bold uppercase tracking-wider ${
-                                       match.result && !isAwayWinner ? 'text-gray-600' : 'text-neonGold/80'
-                                     }`}>
-                                       {awayOwner}
-                                     </span>
-                                   )}
-                                 </div>
-                               </div>
-                               <span className={`font-extrabold text-sm text-right ${
-                                 match.result
-                                   ? isAwayWinner
-                                     ? 'text-neonCyan font-black'
-                                     : 'text-gray-500'
-                                   : 'text-gray-400'
-                               }`}>
-                                 {match.result ? match.result.awayGoals : '-'}
-                               </span>
-                             </div>
-                            
+                            {/* Home team - Playoff */}
+                            <div className="flex justify-between items-center min-h-[22px]">
+                              <div className="flex items-center gap-1.5 truncate">
+                                {match.result && isHomeWinner && <span className="text-neonCyan text-[10px] animate-pulse">▶</span>}
+                                {isPlayable && (
+                                  <LogoEquipo url={getLogoUrl(match.home)} nombreEquipo={match.home} size={18} />
+                                )}
+                                <div className="flex flex-col truncate">
+                                  <span className={`font-bold text-xs truncate max-w-[140px] ${match.result
+                                      ? isHomeWinner
+                                        ? 'text-neonCyan font-black'
+                                        : 'text-gray-500 line-through'
+                                      : 'text-gray-300'
+                                    }`}>
+                                    {match.home}
+                                  </span>
+                                  {homeOwner && (
+                                    <span className={`text-[8px] font-bold uppercase tracking-wider ${match.result && !isHomeWinner ? 'text-gray-600' : 'text-neonGold/80'
+                                      }`}>
+                                      {homeOwner}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <span className={`font-extrabold text-sm text-right ${match.result
+                                  ? isHomeWinner
+                                    ? 'text-neonCyan font-black'
+                                    : 'text-gray-500'
+                                  : 'text-gray-400'
+                                }`}>
+                                {match.result ? match.result.homeGoals : '-'}
+                              </span>
+                            </div>
+
+                            {/* Away team - Playoff */}
+                            <div className="flex justify-between items-center border-t border-panelBorder/30 pt-1.5 min-h-[22px]">
+                              <div className="flex items-center gap-1.5 truncate">
+                                {match.result && isAwayWinner && <span className="text-neonCyan text-[10px] animate-pulse">▶</span>}
+                                {isPlayable && (
+                                  <LogoEquipo url={getLogoUrl(match.away)} nombreEquipo={match.away} size={18} />
+                                )}
+                                <div className="flex flex-col truncate">
+                                  <span className={`font-bold text-xs truncate max-w-[140px] ${match.result
+                                      ? isAwayWinner
+                                        ? 'text-neonCyan font-black'
+                                        : 'text-gray-500 line-through'
+                                      : 'text-gray-300'
+                                    }`}>
+                                    {match.away}
+                                  </span>
+                                  {awayOwner && (
+                                    <span className={`text-[8px] font-bold uppercase tracking-wider ${match.result && !isAwayWinner ? 'text-gray-600' : 'text-neonGold/80'
+                                      }`}>
+                                      {awayOwner}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <span className={`font-extrabold text-sm text-right ${match.result
+                                  ? isAwayWinner
+                                    ? 'text-neonCyan font-black'
+                                    : 'text-gray-500'
+                                  : 'text-gray-400'
+                                }`}>
+                                {match.result ? match.result.awayGoals : '-'}
+                              </span>
+                            </div>
+
                             {/* Penalty Shootout Score display */}
                             {match.result && match.result.penalties && (
                               <div className="text-[10px] text-neonPink font-mono text-center border-t border-panelBorder/30 pt-1 mt-1.5 font-bold uppercase">
@@ -1184,11 +1168,10 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                 <button
                   key={t.name}
                   onClick={() => { sounds.playTick(); setSelectedTeamName(t.name); }}
-                  className={`px-4 py-2.5 rounded-xl text-xs font-mono font-bold whitespace-nowrap border transition-all ${
-                    selectedTeamName === t.name
+                  className={`px-4 py-2.5 rounded-xl text-xs font-mono font-bold whitespace-nowrap border transition-all ${selectedTeamName === t.name
                       ? 'bg-neonCyan text-darkBg border-neonCyan font-black shadow-neonCyan'
                       : 'bg-panelBg text-gray-400 border-panelBorder hover:text-white hover:border-gray-500'
-                  }`}
+                    }`}
                 >
                   {t.name} ({t.owner})
                 </button>
@@ -1276,7 +1259,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                   <h3 className="text-sm font-extrabold tracking-wider font-mono text-gray-400 mb-4 uppercase">
                     PLANTILLA DE JUGADORES ({selectedTeam.legends?.length || 0})
                   </h3>
-                  
+
                   {selectedTeam.legends && selectedTeam.legends.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-[500px] overflow-y-auto pr-1 justify-items-center">
                       {selectedTeam.legends.map((p, idx) => (
@@ -1303,7 +1286,7 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
         {/* ================= TAB 5: STATISTICS / LEADERBOARDS ================= */}
         {activeTab === 'stats' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
-             {/* Pichichi (Top Scorers) */}
+            {/* Pichichi (Top Scorers) */}
             <div className="bg-panelBg border border-panelBorder p-5 rounded-2xl shadow-lg">
               <div className="flex items-center gap-2.5 border-b border-panelBorder pb-3 mb-4">
                 <span className="text-neonGold text-lg">⚽</span>
@@ -1466,14 +1449,14 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
       {selectedMatch && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/85 backdrop-blur-sm z-50 p-4 animate-fade-in">
           <div className="bg-panelBg border border-panelBorder rounded-2xl max-w-xl w-full p-6 shadow-2xl flex flex-col max-h-[90vh]">
-            
+
             {/* Datalists for players autocomplete */}
             <datalist id="home-players-datalist">
               {getHomePlayers().map((p, idx) => (
                 <option key={idx} value={p.name} />
               ))}
             </datalist>
-            
+
             <datalist id="away-players-datalist">
               {getAwayPlayers().map((p, idx) => (
                 <option key={idx} value={p.name} />

@@ -16,7 +16,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
   const [manualTeamAssignments, setManualTeamAssignments] = useState({}); // { playerName: [teamName, ...] }
   const [manualCaptainAssignments, setManualCaptainAssignments] = useState({}); // { teamName: captainName }
   const [manualSetupError, setManualSetupError] = useState('');
-  
+
   // Static lists loaded from backend
   const [constants, setConstants] = useState({
     teams: [],
@@ -32,19 +32,19 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
   // Current draft pointers
   const [currentTurnIndex, setCurrentTurnIndex] = useState(0); // Index in the turn sequence
   const [turnSequence, setTurnSequence] = useState([]); // List of player names representing draft order
-  
+
   // Phase 1 (Captains) pointers
   const [currentTeamIndex, setCurrentTeamIndex] = useState(0);
-  
+
   // Phase 2 (Options) pointers
   const [currentOptionTeamIndex, setCurrentOptionTeamIndex] = useState(0);
   const [currentSpinNumber, setCurrentSpinNumber] = useState(1); // 1, 2, or 3
-  
+
   // Block clicks/spins during transitions
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Modal states for manual actions
-  const [modalType, setModalType] = useState(null); 
+  const [modalType, setModalType] = useState(null);
   // 'sub_wheel_5', 'sub_wheel_4.5', 'sub_wheel_legend', 'comodin_select', 'fichar_manual', 'quitar_manual', 'result_message'
   const [modalData, setModalData] = useState({});
   const [manualInput, setManualInput] = useState('');
@@ -68,7 +68,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
   const [pendingSubSpinResult, setPendingSubSpinResult] = useState(null);
   const [wheelKey, setWheelKey] = useState(0);
   const [subWheelKey, setSubWheelKey] = useState(0);
-  
+
   // Pools that shrink as they are drawn
   const [availableTeams, setAvailableTeams] = useState([]);
   const [availableDiamonds, setAvailableDiamonds] = useState([]);
@@ -90,7 +90,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
   const currentTeamIndexRef = useRef(currentTeamIndex);
   const currentOptionTeamIndexRef = useRef(currentOptionTeamIndex);
   const currentTurnIndexRef = useRef(currentTurnIndex);
-  
+
   useEffect(() => { tournamentRef.current = tournament; }, [tournament]);
   useEffect(() => { currentTeamIndexRef.current = currentTeamIndex; }, [currentTeamIndex]);
   useEffect(() => { currentOptionTeamIndexRef.current = currentOptionTeamIndex; }, [currentOptionTeamIndex]);
@@ -102,7 +102,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
       try {
         const data = getConstants();
         setConstants(data);
-        
+
         // Scan tournament for already drafted teams and legends
         const draftedTeams = new Set();
         const assignedLegendsNormalized = new Set();
@@ -112,7 +112,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
             assignedLegendsNormalized.add(name.trim().toLowerCase());
           }
         };
-        
+
         if (tournament.teams) {
           tournament.teams.forEach(t => {
             draftedTeams.add(t.name);
@@ -150,7 +150,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
         setAvailableSilvers(data.silver_legends.filter(c => !assignedLegendsNormalized.has(c.trim().toLowerCase())));
         setAvailableBronzes(data.bronze_legends.filter(c => !assignedLegendsNormalized.has(c.trim().toLowerCase())));
 
-        
+
         // Initialize player tokens bank (Repescas, repeats, specials)
         const reps = {};
         const repeats = {};
@@ -190,12 +190,12 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
             }
           });
         }
-        
+
         const playerTurns = tournament.human_players.map(p => {
           const needed = Math.max(0, tournament.teams_per_player - (preAssignedCounts[p.name] || 0));
           return { name: p.name, remaining: needed };
         });
-        
+
         let added = true;
         while (added) {
           added = false;
@@ -276,7 +276,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
   // Check whether champion spin is required before advancing
   const hasChampionPending = () => {
     const hasPrevChamp = tournament.advantages?.hasPrevChampion;
-    const champResult  = tournament.advantages?.championsRouletteResult;
+    const champResult = tournament.advantages?.championsRouletteResult;
     return hasPrevChamp && champResult && !champSpinCompleted;
   };
 
@@ -285,7 +285,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
     setTournament(prev => {
       const updated = { ...prev };
       if (!updated.advantages) updated.advantages = {};
-      
+
       const invs = {};
       prev.human_players.forEach(p => {
         invs[p.name] = {
@@ -298,7 +298,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
         };
       });
       updated.advantages.inventories = invs;
-      
+
       // Keep wildcard count in sync for backwards compatibility
       if (!updated.advantages.wildcards) updated.advantages.wildcards = {};
       prev.human_players.forEach(p => {
@@ -380,12 +380,12 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
 
   const executeSpecialAdvantage = (playerName, type, team) => {
     sounds.playTick();
-    
+
     const fakeSpinLog = {
       accion: `Ventaja: ${type}`,
       resultado: 'Pendiente'
     };
-    
+
     const contextData = {
       isSpecialAdvantage: true,
       specialAdvantageType: type,
@@ -393,7 +393,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
       team,
       spinLog: fakeSpinLog
     };
-    
+
     if (type === 'comodinOro') {
       setModalType('comodin_select');
       setModalData({ category: 'Oro', pool: availableGolds, team, spinLog: fakeSpinLog, contextData });
@@ -535,7 +535,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
   const confirmTeamDrawn = (teamName) => {
     const latestTurnIndex = currentTurnIndexRef.current;
     const activePlayerName = turnSequence[latestTurnIndex];
-    
+
     const newTeam = {
       name: teamName,
       owner: activePlayerName,
@@ -553,7 +553,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
     const updatedTeams = [...latestTournament.teams, newTeam];
     const updatedTournament = { ...latestTournament, teams: updatedTeams };
     setTournament(updatedTournament);
-    
+
     setAvailableTeams(prev => prev.filter(t => t !== teamName));
     setPendingSpinResult(null);
 
@@ -586,7 +586,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
     const latestTournament = tournamentRef.current;
     const updatedTeams = [...latestTournament.teams];
     const currentTeam = updatedTeams[latestTeamIndex];
-    
+
     const captainPos = getLegendPosition(captainName);
     currentTeam.captain = captainName;
     currentTeam.captain_category = 'Diamante';
@@ -632,15 +632,15 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
     const latestTournament = tournamentRef.current;
     const updatedTeams = [...latestTournament.teams];
     const currentTeam = updatedTeams[latestOptionTeamIndex];
-    
+
     currentTeam.option_results.push(optionName);
-    
+
     const spinLog = {
       accion: optionName,
       resultado: 'Pendiente'
     };
     currentTeam.spins.push(spinLog);
-    
+
     setTournament({ ...latestTournament, teams: updatedTeams });
     setPendingSpinResult(null);
 
@@ -682,7 +682,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
       setModalType('sub_wheel_legend');
       setModalData({ category: 'Bronce', options: availableBronzes, team, spinLog });
     }
-    
+
     // 2. Comodines Awards (Forced Immediate Selection of choice)
     else if (option === 'Comodín Diamante') {
       setModalType('comodin_select');
@@ -704,7 +704,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
       setModalData({ category: 'Bronce', pool: availableBronzes, team, spinLog });
       setSelectedLegendForComodin('');
     }
-    
+
     // 3. Sub-Wheels for Teams 4.5* / 5* (Excluding already drafted teams)
     else if (option === 'Fichar jugador equipo 5*') {
       const drafted = tournamentRef.current.teams.map(tm => tm.name);
@@ -720,7 +720,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
       setModalType('sub_wheel_4.5');
       setModalData({ spinLog, team, options: finalOptions });
     }
-    
+
     // 4. Manual Signings (Fichajes)
     else if (option === 'Fichar un Atacante') {
       openManualSigningModal('Atacante', 'DEL', spinLog, team);
@@ -734,7 +734,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
     else if (option === 'Fichar un jugador Normal' || option === 'Fichar un jugador Actual') {
       openManualSigningModal('Jugador Actual', 'JGD', spinLog, team);
     }
-    
+
     // 5. Interactive Removes / Losses (Descartes)
     else if (option === 'Quitar un Atacante') {
       openManualRemoveModal('Atacante', 'DEL', spinLog, team);
@@ -756,7 +756,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
   const completeOptionSpin = (resultText, spinLog) => {
     spinLog.resultado = resultText;
     setTournament({ ...tournamentRef.current }); // Trigger re-render
-    
+
     setModalType('result_message');
     setModalData({ message: resultText });
   };
@@ -796,14 +796,14 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
   const confirmSubLegendFinished = (legendName, mData) => {
     const { category, team, spinLog, contextData } = mData;
     sounds.playSuccess();
-    
+
     const legendPos = getLegendPosition(legendName);
     team.legends.push({ name: legendName, category, position: legendPos });
     team.base_changes.push(`Giro: ${legendName} (${category})`);
-    
+
     // Lock globally
     lockLegend(legendName);
-    
+
     setModalType(null);
     setPendingSubSpinResult(null);
 
@@ -811,7 +811,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
       // Deduct item
       const pName = contextData.playerName;
       const advType = contextData.specialAdvantageType;
-      
+
       const updatedSpecials = {
         ...playerSpecialAdvantages,
         [pName]: {
@@ -833,24 +833,24 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
   const handleConfirmComodinSelect = () => {
     if (!selectedLegendForComodin) return;
     sounds.playSuccess();
-    
+
     const { category, team, spinLog, contextData } = modalData;
     const legendName = selectedLegendForComodin;
-    
+
     const legendPos = getLegendPosition(legendName);
     team.legends.push({ name: legendName, category, position: legendPos });
     team.base_changes.push(`Elegido: ${legendName} (${category})`);
-    
+
     // Lock globally
     lockLegend(legendName);
-    
+
     setModalType(null);
 
     if (contextData && contextData.isSpecialAdvantage) {
       // Deduct item
       const pName = contextData.playerName;
       const advType = contextData.specialAdvantageType;
-      
+
       const updatedSpecials = {
         ...playerSpecialAdvantages,
         [pName]: {
@@ -900,19 +900,19 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
       return;
     }
     sounds.playSuccess();
-    
+
     const { team, posTag, subTeam, spinLog } = modalData;
-    
+
     const signedPlayer = {
       name: manualInput.trim(),
       category: 'Actual',
       position: posTag || 'JGD',
       club: subTeam || 'Sin club'
     };
-    
+
     team.legends.push(signedPlayer);
     team.base_changes.push(`Fichado: ${signedPlayer.name} (${signedPlayer.position})`);
-    
+
     const resString = `Fichado: ${signedPlayer.name} [${subTeam || posTag || 'Actual'}]`;
     setModalType(null);
     completeOptionSpin(resString, spinLog);
@@ -930,7 +930,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
   const getEligibleRemovablePlayers = (legends, posTag, captainName) => {
     // Captain is NEVER removable (exclude Diamond legends / captain Name)
     const nonCaptains = legends.filter(p => p.name !== captainName && p.category !== 'Diamante');
-    
+
     if (!posTag) return nonCaptains;
     let filtered = [];
     if (posTag === 'DEL') {
@@ -942,7 +942,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
     } else if (posTag === 'JGD') {
       filtered = nonCaptains.filter(p => p.category === 'Actual' || p.position === 'JGD');
     }
-    
+
     // Safety fallback: if no matching player exists, let them remove any non-captain
     return filtered.length > 0 ? filtered : nonCaptains;
   };
@@ -997,7 +997,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
     // Validate position eligibility
     const eligibleList = getEligibleRemovablePlayers(team.legends, posTag, team.captain);
     const isEligible = eligibleList.some(p => p.name.toLowerCase() === nameInput.toLowerCase());
-    
+
     if (!isEligible) {
       const proceed = window.confirm(`El jugador '${matchingPlayer.name}' está registrado con la posición '${matchingPlayer.position || 'JGD'}'. ¿Estás seguro de que quieres descartarlo para esta acción de '${title || 'Quitar Jugador'}'?`);
       if (!proceed) {
@@ -1007,10 +1007,10 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
 
     // Execute removal
     sounds.playFail();
-    
+
     team.legends = team.legends.filter(p => p.name.toLowerCase() !== nameInput.toLowerCase());
     team.base_changes.push(`Eliminado: ${matchingPlayer.name}`);
-    
+
     if (!team.eliminated_players) {
       team.eliminated_players = [];
     }
@@ -1033,19 +1033,19 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
       alert('No te quedan Fichas de Repesca.');
       return;
     }
-    
+
     // Add back to squad
     team.legends.push(player);
     team.base_changes.push(`Repescado: ${player.name}`);
-    
+
     // Remove from eliminated list
     team.eliminated_players = team.eliminated_players.filter((_, idx) => idx !== playerIdx);
-    
+
     // Deduct from owner repesca bank
     const updatedRepescas = { ...playerRepescas };
     updatedRepescas[owner] = Math.max(0, updatedRepescas[owner] - 1);
     setPlayerRepescas(updatedRepescas);
-    
+
     setTournament(updated);
   };
 
@@ -1091,7 +1091,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
         });
         gIdx = (gIdx + 1) % numGroups;
       });
-    } 
+    }
     else if (mode === 'random') {
       const shuffled = [...teams].sort(() => Math.random() - 0.5);
       shuffled.forEach((t, idx) => {
@@ -1100,7 +1100,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
       });
     }
     else {
-      if (groups.length > 0) return; 
+      if (groups.length > 0) return;
       return distributeGroups('balanced');
     }
 
@@ -1138,18 +1138,18 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
   // Schedule Generator
   const generateFixtures = (finalGroups) => {
     const fixtures = [];
-    
+
     finalGroups.forEach(group => {
       const gName = group.name;
       const gTeams = group.teams.map(t => t.name);
-      
+
       if (gTeams.length === 4) {
         fixtures.push({ id: `M_${gName}_1_1`, group: gName, round: 1, home: gTeams[0], away: gTeams[1], result: null });
         fixtures.push({ id: `M_${gName}_1_2`, group: gName, round: 1, home: gTeams[2], away: gTeams[3], result: null });
-        
+
         fixtures.push({ id: `M_${gName}_2_1`, group: gName, round: 2, home: gTeams[0], away: gTeams[2], result: null });
         fixtures.push({ id: `M_${gName}_2_2`, group: gName, round: 2, home: gTeams[1], away: gTeams[3], result: null });
-        
+
         fixtures.push({ id: `M_${gName}_3_1`, group: gName, round: 3, home: gTeams[0], away: gTeams[3], result: null });
         fixtures.push({ id: `M_${gName}_3_2`, group: gName, round: 3, home: gTeams[1], away: gTeams[2], result: null });
       } else {
@@ -1158,7 +1158,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
         const rounds = list.length - 1;
         const half = list.length / 2;
         let matchCounter = 1;
-        
+
         for (let r = 0; r < rounds; r++) {
           for (let i = 0; i < half; i++) {
             const home = list[i];
@@ -1188,7 +1188,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
       return;
     }
     sounds.playSuccess();
-    
+
     const updatedTeams = tournament.teams.map(t => {
       const matchingGroup = groups.find(g => g.teams.map(tm => tm.name).includes(t.name));
       return {
@@ -1226,7 +1226,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
       repescas: playerRepescas,
       matches: generateFixtures(groups)
     };
-    
+
     try {
       await saveTournament(tournament.filename, updatedTournament);
       onComplete(updatedTournament);
@@ -1294,7 +1294,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
 
   const renderAdvantagesPanel = () => {
     return (
-      <div 
+      <div
         className="bg-panelBg/90 border border-panelBorder rounded-2xl p-5 shadow-xl font-mono text-xs w-full"
         style={{ background: 'linear-gradient(135deg, rgba(11,20,38,0.9) 0%, rgba(6,10,18,0.95) 100%)' }}
       >
@@ -1302,16 +1302,16 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
           <span className="text-[10px] text-neonCyan font-bold tracking-widest uppercase">🎒 Inventario de Ventajas</span>
           <span className="text-[9px] text-gray-500">Haz clic en comodines o giros de ruleta especiales para aplicarlos a tus equipos</span>
         </div>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {tournament.human_players.map(p => {
             const reps = playerRepescas[p.name] || 0;
             const repeats = playerRepeats[p.name] || 0;
             const spec = playerSpecialAdvantages[p.name] || { comodinOro: 0, comodinDiamante: 0, ruletaOro: 0, ruletaDiamante: 0 };
-            
+
             const hasSpecials = spec.comodinOro > 0 || spec.comodinDiamante > 0 || spec.ruletaOro > 0 || spec.ruletaDiamante > 0;
             const isChampOwner = tournament.advantages?.prevChampOwner === p.name;
-            
+
             return (
               <div key={p.name} className="p-3 bg-darkBg/60 border border-panelBorder/60 rounded-xl flex flex-col gap-2.5">
                 <div className="flex justify-between items-center border-b border-panelBorder/20 pb-1.5">
@@ -1320,7 +1320,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                     <span className="text-[8px] bg-neonGold/10 border border-neonGold/30 text-neonGold px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">🏆 Campeón</span>
                   )}
                 </div>
-                
+
                 <div className="flex flex-col gap-1.5 text-[10px]">
                   <div className="flex justify-between">
                     <span className="text-gray-400">🛡️ Fichas de Repesca:</span>
@@ -1331,7 +1331,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                     <span className="text-emerald-400 font-bold text-sm">x{repeats}</span>
                   </div>
                 </div>
-                
+
                 {hasSpecials && (
                   <div className="flex flex-col gap-1.5 border-t border-panelBorder/20 pt-2">
                     <span className="text-[8px] text-neonGold font-bold tracking-wider uppercase mb-0.5">Ventajas de Ruleta de Campeones:</span>
@@ -1446,7 +1446,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
           >
             ⚠️ REINICIAR TORNEO
           </button>
-          
+
           <div className="bg-panelBg border border-panelBorder px-4 py-2 rounded-xl">
             <span className="text-gray-500">FASE ACTUAL: </span>
             <span className="text-neonCyan font-bold uppercase">
@@ -1845,7 +1845,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
               </div>
             </div>
 
-            <div 
+            <div
               className="rounded-2xl relative overflow-hidden min-h-[280px]"
               style={{
                 background: 'linear-gradient(145deg, rgba(11,19,36,0.9) 0%, rgba(8,14,25,0.95) 100%)',
@@ -1855,11 +1855,11 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
             >
               {/* Watermark logo - large centered branding */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-                <img 
-                  src="/logo-escudo-clean.png" 
-                  alt="" 
+                <img
+                  src="/logo-escudo-clean.png"
+                  alt=""
                   className="w-[70%] max-w-[320px] object-contain opacity-[0.06]"
-                  style={{ 
+                  style={{
                     mixBlendMode: 'lighten',
                     filter: 'saturate(0.6)',
                   }}
@@ -1868,20 +1868,20 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
               </div>
 
               {/* Top subtle glow accent line */}
-              <div 
+              <div
                 className="absolute top-0 left-[10%] right-[10%] h-[1px] z-10"
                 style={{ background: 'linear-gradient(90deg, transparent, rgba(0,243,255,0.15), transparent)' }}
               />
 
               {/* Header */}
               <div className="px-6 pt-5 pb-3 relative z-10 flex items-center justify-between">
-                <h3 
+                <h3
                   className="text-[11px] font-extrabold tracking-[0.2em] font-mono uppercase"
                   style={{ color: 'rgba(255,255,255,0.4)' }}
                 >
                   EQUIPOS ASIGNADOS
                 </h3>
-                <span 
+                <span
                   className="text-[9px] font-mono tracking-widest"
                   style={{ color: 'rgba(0,243,255,0.4)' }}
                 >
@@ -1905,8 +1905,8 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-h-[260px] overflow-y-auto pr-1">
                     {tournament.teams.map((t, idx) => (
-                      <div 
-                        key={idx} 
+                      <div
+                        key={idx}
                         className="p-3 rounded-xl text-center transition-all duration-300 hover:scale-[1.02] group cursor-default flex flex-col items-center gap-1.5"
                         style={{
                           background: 'linear-gradient(135deg, rgba(5,10,20,0.8) 0%, rgba(11,19,36,0.7) 100%)',
@@ -1948,7 +1948,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
 
           <div className="flex flex-col items-center justify-center w-full max-w-md">
             {pendingSpinResult && pendingSpinResult.type === 'team' ? (
-              <div 
+              <div
                 className="bg-panelBg border border-neonCyan p-8 rounded-2xl w-full text-center shadow-2xl animate-scale-up"
                 style={{ boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)' }}
               >
@@ -1956,7 +1956,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                 <h4 className="text-3xl font-black text-neonCyan tracking-tight uppercase mb-8 drop-shadow-[0_0_5px_rgba(0,240,255,0.4)]">
                   {pendingSpinResult.value}
                 </h4>
-                
+
                 <div className="flex flex-col gap-3">
                   <button
                     onClick={() => confirmTeamDrawn(pendingSpinResult.value)}
@@ -1964,7 +1964,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                   >
                     ✅ Confirmar y Continuar
                   </button>
-                  
+
                   {(playerRepeats[pendingSpinResult.owner] || 0) > 0 && (
                     <button
                       onClick={handleUseRepeatSpin}
@@ -2047,7 +2047,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
 
           <div className="flex flex-col items-center justify-center w-full max-w-md">
             {pendingSpinResult && pendingSpinResult.type === 'captain' ? (
-              <div 
+              <div
                 className="bg-panelBg border border-neonCyan p-8 rounded-2xl w-full text-center shadow-2xl animate-scale-up"
                 style={{ boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)' }}
               >
@@ -2055,7 +2055,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                 <h4 className="text-3xl font-black text-neonCyan tracking-tight uppercase mb-8 drop-shadow-[0_0_5px_rgba(0,240,255,0.4)]">
                   {pendingSpinResult.value}
                 </h4>
-                
+
                 <div className="flex flex-col gap-3">
                   <button
                     onClick={() => confirmCaptainDrawn(pendingSpinResult.value)}
@@ -2063,7 +2063,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                   >
                     ✅ Confirmar y Continuar
                   </button>
-                  
+
                   {(playerRepeats[pendingSpinResult.owner] || 0) > 0 && (
                     <button
                       onClick={handleUseRepeatSpin}
@@ -2126,7 +2126,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
               <h3 className="text-sm font-extrabold tracking-wider font-mono text-gray-400 mb-4">
                 RESULTADOS DE {tournament.teams[currentOptionTeamIndex]?.name}
               </h3>
-              
+
               <div className="space-y-3">
                 {tournament.teams[currentOptionTeamIndex]?.spins.length === 0 ? (
                   <p className="text-gray-500 font-mono text-xs py-4 text-center">Gira la ruleta de opciones...</p>
@@ -2144,7 +2144,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
 
           <div className="flex flex-col items-center justify-center w-full max-w-md">
             {pendingSpinResult && pendingSpinResult.type === 'option' ? (
-              <div 
+              <div
                 className="bg-panelBg border border-neonGold p-8 rounded-2xl w-full text-center shadow-2xl animate-scale-up"
                 style={{ boxShadow: '0 0 20px rgba(255, 215, 0, 0.15)' }}
               >
@@ -2152,7 +2152,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                 <h4 className="text-2xl font-black text-neonGold tracking-tight uppercase mb-8 drop-shadow-[0_0_5px_rgba(255,215,0,0.4)]">
                   {pendingSpinResult.value}
                 </h4>
-                
+
                 <div className="flex flex-col gap-3">
                   <button
                     onClick={() => confirmOptionDrawn(pendingSpinResult.value)}
@@ -2160,7 +2160,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                   >
                     ✅ Confirmar y Aplicar
                   </button>
-                  
+
                   {(playerRepeats[pendingSpinResult.owner] || 0) > 0 && (
                     <button
                       onClick={handleUseRepeatSpin}
@@ -2206,7 +2206,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
               const owner = t.owner;
               const repescasLeft = playerRepescas[owner] || 0;
               const hasEliminated = t.eliminated_players && t.eliminated_players.length > 0;
-              
+
               return (
                 <div key={teamIdx} className="bg-darkBg border border-panelBorder p-5 rounded-xl flex flex-col justify-between">
                   <div>
@@ -2243,7 +2243,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                       <div className="max-h-[80px] overflow-y-auto space-y-0.5 pr-1 text-[10px] font-mono text-gray-400">
                         {t.spins.map((s, idx) => (
                           <div key={idx} className="flex justify-between">
-                            <span>#{idx+1}: {s.accion}</span>
+                            <span>#{idx + 1}: {s.accion}</span>
                             <span className="text-neonCyan font-bold">{s.resultado}</span>
                           </div>
                         ))}
@@ -2255,7 +2255,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                   {hasEliminated && repescasLeft > 0 && (
                     <div className="border-t border-neonCyan/30 pt-3 mt-2 bg-neonCyan/5 p-3 rounded-lg border border-neonCyan/20">
                       <span className="text-[10px] text-neonCyan font-bold font-mono block mb-2 uppercase">🛡️ Recuperar Jugadores con Ficha de Repesca</span>
-                      
+
                       <div className="space-y-2">
                         {t.eliminated_players.map((ep, pIdx) => {
                           return (
@@ -2306,31 +2306,28 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
             <div className="flex justify-center gap-4 mt-6 font-mono text-xs">
               <button
                 onClick={() => distributeGroups('balanced')}
-                className={`px-5 py-2 rounded-full font-bold border transition-all ${
-                  groupMode === 'balanced'
+                className={`px-5 py-2 rounded-full font-bold border transition-all ${groupMode === 'balanced'
                     ? 'bg-neonCyan border-neonCyan text-darkBg shadow-neonCyan font-black'
                     : 'bg-darkBg border-panelBorder text-gray-400 hover:text-white'
-                }`}
+                  }`}
               >
                 AUTOMÁTICO INTELIGENTE
               </button>
               <button
                 onClick={() => distributeGroups('random')}
-                className={`px-5 py-2 rounded-full font-bold border transition-all ${
-                  groupMode === 'random'
+                className={`px-5 py-2 rounded-full font-bold border transition-all ${groupMode === 'random'
                     ? 'bg-neonCyan border-neonCyan text-darkBg shadow-neonCyan font-black'
                     : 'bg-darkBg border-panelBorder text-gray-400 hover:text-white'
-                }`}
+                  }`}
               >
                 SORTEO ALEATORIO
               </button>
               <button
                 onClick={() => setGroupMode('manual')}
-                className={`px-5 py-2 rounded-full font-bold border transition-all ${
-                  groupMode === 'manual'
+                className={`px-5 py-2 rounded-full font-bold border transition-all ${groupMode === 'manual'
                     ? 'bg-neonCyan border-neonCyan text-darkBg shadow-neonCyan font-black'
                     : 'bg-darkBg border-panelBorder text-gray-400 hover:text-white'
-                }`}
+                  }`}
               >
                 AJUSTE MANUAL
               </button>
@@ -2360,7 +2357,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                             <span className="font-extrabold text-white block">{t.name}</span>
                             <span className="text-[10px] text-gray-500 uppercase block font-bold">{t.owner}</span>
                           </div>
-                          
+
                           <select
                             value={group.name}
                             onChange={(e) => handleManualGroupChange(t.name, e.target.value)}
@@ -2388,11 +2385,10 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
             <button
               onClick={handleStartLeague}
               disabled={!validateGroups()}
-              className={`px-12 py-4 rounded-full font-black text-lg tracking-widest transition-all uppercase ${
-                validateGroups()
+              className={`px-12 py-4 rounded-full font-black text-lg tracking-widest transition-all uppercase ${validateGroups()
                   ? 'bg-gradient-to-r from-neonCyan to-cyan-500 text-darkBg shadow-neonCyan hover:scale-105 active:scale-95'
                   : 'bg-gray-800 text-gray-600 cursor-not-allowed shadow-none'
-              }`}
+                }`}
             >
               COMENZAR LA LIGA
             </button>
@@ -2408,14 +2404,14 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
             <h3 className="text-lg font-extrabold text-white tracking-wide font-mono mb-4 text-center">
               {modalType === 'sub_wheel_5' ? 'RULETA EQUIPO 5 ESTRELLAS' : 'RULETA EQUIPO 4.5 ESTRELLAS'}
             </h3>
-            
+
             {pendingSubSpinResult && pendingSubSpinResult.type === 'sub_team' ? (
               <div className="flex flex-col items-center py-6 text-center animate-scale-up w-full">
                 <span className="text-[10px] text-gray-500 font-mono tracking-widest uppercase block mb-1">Equipo obtenido</span>
                 <h4 className="text-2xl font-black text-neonCyan tracking-tight uppercase mb-6 drop-shadow-[0_0_5px_rgba(0,240,255,0.4)]">
                   {pendingSubSpinResult.value}
                 </h4>
-                
+
                 <div className="flex flex-col gap-3 w-full">
                   <button
                     onClick={() => confirmSubWheelFinished(pendingSubSpinResult.value, pendingSubSpinResult.modalData)}
@@ -2423,7 +2419,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                   >
                     ✅ Confirmar Elección
                   </button>
-                  
+
                   {(playerRepeats[pendingSubSpinResult.owner] || 0) > 0 && (
                     <button
                       onClick={handleUseRepeatSubSpin}
@@ -2440,7 +2436,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                 options={modalData.options}
                 onFinished={handleSubWheelFinishedWrapper}
                 buttonText="GIRAR SUB-RULETA"
-                onSpinStart={() => {}}
+                onSpinStart={() => { }}
               />
             )}
           </div>
@@ -2454,14 +2450,14 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
             <h3 className="text-lg font-extrabold text-neonCyan tracking-wide font-mono mb-4 text-center uppercase">
               RULETA LEYENDA {modalData.category}
             </h3>
-            
+
             {pendingSubSpinResult && pendingSubSpinResult.type === 'sub_legend' ? (
               <div className="flex flex-col items-center py-6 text-center animate-scale-up w-full">
                 <span className="text-[10px] text-gray-500 font-mono tracking-widest uppercase block mb-1">Leyenda obtenida</span>
                 <h4 className="text-2xl font-black text-neonCyan tracking-tight uppercase mb-6 drop-shadow-[0_0_5px_rgba(0,240,255,0.4)]">
                   {pendingSubSpinResult.value}
                 </h4>
-                
+
                 <div className="flex flex-col gap-3 w-full">
                   <button
                     onClick={() => confirmSubLegendFinished(pendingSubSpinResult.value, pendingSubSpinResult.modalData)}
@@ -2469,7 +2465,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                   >
                     ✅ Confirmar Elección
                   </button>
-                  
+
                   {(playerRepeats[pendingSubSpinResult.owner] || 0) > 0 && (
                     <button
                       onClick={handleUseRepeatSubSpin}
@@ -2486,7 +2482,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                 options={modalData.options}
                 onFinished={handleSubLegendFinishedWrapper}
                 buttonText={`GIRAR ${modalData.category?.toUpperCase()}`}
-                onSpinStart={() => {}}
+                onSpinStart={() => { }}
               />
             )}
           </div>
@@ -2526,11 +2522,10 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
                   <div
                     key={idx}
                     onClick={() => setSelectedLegendForComodin(name)}
-                    className={`p-3 bg-darkBg border rounded-xl cursor-pointer text-xs font-mono font-bold text-center transition-all ${
-                      selectedLegendForComodin === name
+                    className={`p-3 bg-darkBg border rounded-xl cursor-pointer text-xs font-mono font-bold text-center transition-all ${selectedLegendForComodin === name
                         ? 'border-neonCyan bg-neonCyan/10 text-neonCyan'
                         : 'border-panelBorder text-white hover:border-gray-500'
-                    }`}
+                      }`}
                   >
                     {name} ({getLegendPosition(name)})
                   </div>
@@ -2544,11 +2539,10 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
               <button
                 onClick={handleConfirmComodinSelect}
                 disabled={!selectedLegendForComodin}
-                className={`w-1/2 py-3 rounded-xl font-black text-xs tracking-wider transition-all uppercase font-mono ${
-                  selectedLegendForComodin
+                className={`w-1/2 py-3 rounded-xl font-black text-xs tracking-wider transition-all uppercase font-mono ${selectedLegendForComodin
                     ? 'bg-gradient-to-r from-neonCyan to-cyan-500 text-darkBg shadow-neonCyan'
                     : 'bg-gray-800 text-gray-600 cursor-not-allowed'
-                }`}
+                  }`}
               >
                 CONFIRMAR ELECCIÓN
               </button>
@@ -2564,7 +2558,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
             <h3 className="text-lg font-extrabold text-neonCyan tracking-wide font-mono uppercase mb-4 border-b border-panelBorder pb-2">
               ⚽ Registrar Fichaje: {modalData.title}
             </h3>
-            
+
             {modalData.subTeam && (
               <div className="mb-4 bg-cyan-950/20 border border-neonCyan/20 p-3 rounded-lg text-xs font-mono">
                 <span className="text-gray-400">Equipo obtenido:</span>
@@ -2602,7 +2596,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
               ❌ Descartar Jugador: {modalData.title}
             </h3>
             <p className="text-xs text-gray-500 mb-4 font-mono">
-              Escribe directamente el nombre del jugador a eliminar de la plantilla de {modalData.team?.name}. 
+              Escribe directamente el nombre del jugador a eliminar de la plantilla de {modalData.team?.name}.
               <br />
               <span className="text-neonGold font-bold">Nota: Los capitanes Diamante no se pueden eliminar.</span>
             </p>
@@ -2655,7 +2649,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
             <h4 className="text-2xl font-black text-neonCyan tracking-tight uppercase drop-shadow-[0_0_5px_rgba(0,240,255,0.4)]">
               {modalData.message}
             </h4>
-            
+
             <button
               onClick={handleCloseResultMessage}
               className="mt-6 w-full py-3 bg-panelBorder rounded-xl font-bold hover:bg-gray-800 text-sm tracking-wider transition-all"
@@ -2745,7 +2739,7 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
             <h4 className="text-xl font-black text-neonGold tracking-tight uppercase mb-6">
               {modalData.message}
             </h4>
-            
+
             <button
               onClick={() => {
                 setModalType(null);
@@ -2796,4 +2790,5 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
 };
 
 export default DraftRoom;
+
 

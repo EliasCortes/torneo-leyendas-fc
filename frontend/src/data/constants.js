@@ -151,7 +151,7 @@ export const TEAMS_BY_COUNTRY = {
     "Real Madrid", "FC Barcelona", "Atletico de Madrid", "Sevilla", "Villarreal FC",
     "Athletic Club", "Real Betis", "Valencia FC", "Real Sociedad", "Rayo Vallecano",
     "Getafe FC", "RCD Mallorca", "Alaves", "CA Osasuna", "RC Celta",
-    "RCD Espayol", "Elche", "Levante", "Oviedo"
+    "RCD Espayol", "Elche", "Levante", "Oviedo", "Girona FC"
   ],
   "🇦🇷 Argentina": [
     "Boca Juniors", "River Plate", "Racing Club", "Independiente", "Rosario Central",
@@ -161,7 +161,7 @@ export const TEAMS_BY_COUNTRY = {
     "FC Bayern Munchen", "Borussia Dortmund", "Bayer Leverkusen", "RB Leipzig",
     "VFB Stuttgart", "Borussia M'gladbach", "Hamburgo", "Union Berlin",
     "SC Freiburg", "FC Augsburg", "VFL Wolfsburg", "FSV Mainz 05",
-    "TSG Hoffenheim", "SV Werder Bremen", "FC Koln", "ST Pauli", "Heidenheim"
+    "TSG Hoffenheim", "SV Werder Bremen", "FC Koln", "ST Pauli", "Heidenheim", "Frankfurt"
   ],
   "🇮🇹 Italia": [
     "Inter de Milan", "AC Milan", "Juventus", "Roma", "Lazio",
@@ -216,5 +216,8 @@ export const TEAMS_BY_COUNTRY = {
   ],
   "🇨🇾 Chipre": [
     "Apoel"
+  ],
+  "🇩🇰 Dinamarca": [
+    "Copenhagen FC"
   ]
 };

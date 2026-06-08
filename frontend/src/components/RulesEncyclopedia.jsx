@@ -10,6 +10,7 @@ import { useTeamLogos } from '../hooks/useTeamLogos';
 import LogoEquipo from './LogoEquipo';
 
 const TIER_TABS = [
+  { id: 'rules',   label: '📜 Reglas',     color: '#ff3366' },
   { id: 'teams',   label: '🌍 Equipos',   color: '#00f3ff' },
   { id: 'diamond', label: '💎 Diamante',   color: '#00f3ff' },
   { id: 'gold',    label: '🥇 Oro',        color: '#ffc33c' },
@@ -43,7 +44,8 @@ const FLAGCDN_MAP = {
   "🇦🇹 Austria": "at",
   "🇭🇷 Croacia": "hr",
   "🇸🇪 Suecia": "se",
-  "🇨🇾 Chipre": "cy"
+  "🇨🇾 Chipre": "cy",
+  "🇩🇰 Dinamarca": "dk"
 };
 
 const getFlagUrl = (countryKey) => {
@@ -148,34 +150,90 @@ const RulesEncyclopedia = ({ onClose }) => {
         </div>
 
         {/* ── Search Bar (flex-shrink-0 so it never overlaps) ── */}
-        <div
-          className="flex-shrink-0 px-5 py-3"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
-        >
-          <div className="relative">
-            <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-              style={{ color: 'rgba(0,243,255,0.4)' }}
-              fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-            </svg>
-            <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder={activeTab === 'teams' ? 'Buscar equipo o país...' : 'Buscar leyenda...'}
-              className="w-full pl-9 pr-4 py-2 rounded-lg text-xs font-mono text-white placeholder-gray-600 focus:outline-none"
-              style={{
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(0,243,255,0.15)',
-              }}
-            />
+        {activeTab !== 'rules' && (
+          <div
+            className="flex-shrink-0 px-5 py-3"
+            style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+          >
+            <div className="relative">
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+                style={{ color: 'rgba(0,243,255,0.4)' }}
+                fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+              </svg>
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder={activeTab === 'teams' ? 'Buscar equipo o país...' : 'Buscar leyenda...'}
+                className="w-full pl-9 pr-4 py-2 rounded-lg text-xs font-mono text-white placeholder-gray-600 focus:outline-none"
+                style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(0,243,255,0.15)',
+                }}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ── Scrollable Content ── */}
         <div className="flex-1 overflow-y-auto px-5 py-4" style={{ minHeight: 0 }}>
+
+          {/* ─ Rules ─ */}
+          {activeTab === 'rules' && (
+            <div className="space-y-6 text-gray-300 font-sans text-sm leading-relaxed p-2">
+              <div className="p-4 rounded-xl border border-neonPink/20 bg-neonPink/5">
+                <h3 className="text-neonPink font-bold text-lg font-mono uppercase tracking-widest mb-2 flex items-center gap-2">
+                  <span>🎯</span> Objetivo del Torneo
+                </h3>
+                <p>
+                  Bienvenido al <strong>Torneo Leyendas FC</strong>. El objetivo es enfrentar a dos o más jugadores seleccionando un equipo de manera aleatoria y reforzándolo progresivamente mediante la obtención de leyendas o fichajes estrella gracias a las ruletas.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl border border-neonCyan/20 bg-neonCyan/5">
+                <h3 className="text-neonCyan font-bold text-lg font-mono uppercase tracking-widest mb-2 flex items-center gap-2">
+                  <span>🌍</span> Selección de Equipo
+                </h3>
+                <ul className="list-disc pl-5 space-y-2">
+                  <li>El torneo comienza con un sorteo donde cada jugador elige un equipo.</li>
+                  <li>Se escoge entre una extensa base de datos con decenas de equipos agrupados por país.</li>
+                  <li>Las plantillas son personalizadas y actualizadas, y se usarán como la base del conjunto a lo largo de toda la competición.</li>
+                </ul>
+              </div>
+
+              <div className="p-4 rounded-xl border border-neonGold/20 bg-neonGold/5">
+                <h3 className="text-neonGold font-bold text-lg font-mono uppercase tracking-widest mb-2 flex items-center gap-2">
+                  <span>🎲</span> Las Ruletas y Tiers
+                </h3>
+                <p className="mb-2">
+                  Las leyendas están categorizadas en cuatro niveles (Tiers), cada uno de diferente impacto:
+                </p>
+                <ul className="space-y-2 pl-2">
+                  <li><strong className="text-cyan-400">💎 Diamante:</strong> Capitanes, leyendas absolutas del fútbol histórico (Maradona, Pele, Messi, etc.). Suelen estar limitados.</li>
+                  <li><strong className="text-yellow-400">🥇 Oro:</strong> Jugadores de élite histórica e iconos.</li>
+                  <li><strong className="text-gray-300">🥈 Plata:</strong> Leyendas de gran calidad técnica e impacto histórico.</li>
+                  <li><strong className="text-amber-600">🥉 Bronce:</strong> Jugadores muy útiles y versátiles.</li>
+                </ul>
+                <p className="mt-3">
+                  Durante el evento, la <strong className="text-white">Ruleta de Opciones</strong> determinará si puedes fichar un atacante, tirar una ruleta de determinado tier (Oro, Plata, Bronce), quitar un jugador al rival, o utilizar un comodín para reforzar estratégicamente a tu equipo.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl border border-white/10 bg-white/5">
+                <h3 className="text-white font-bold text-lg font-mono uppercase tracking-widest mb-2 flex items-center gap-2">
+                  <span>⚖️</span> Restricciones
+                </h3>
+                <ul className="list-disc pl-5 space-y-2 text-gray-400">
+                  <li>No se pueden hacer fichajes infinitos; están regidos por las recompensas de la ruleta.</li>
+                  <li>Las reglas adicionales pueden ser acordadas mutuamente entre los participantes al inicio del torneo.</li>
+                  <li>El sistema mantiene persistencia automática para que el progreso (ganadores, goles, etc.) quede registrado tras cada partido.</li>
+                </ul>
+              </div>
+            </div>
+          )}
 
           {/* ─ Teams by Country ─ */}
           {activeTab === 'teams' && (
