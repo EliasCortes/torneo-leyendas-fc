@@ -4,6 +4,7 @@ import PlayerCard from '../components/PlayerCard';
 import sounds from '../utils/audio';
 import { getLegendPosition } from '../utils/legendPositions';
 import { getConstants, saveTournament, deleteTournament } from '../services/tournamentService';
+import { initializeRosters } from '../services/rosterService';
 import { useTeamLogos } from '../hooks/useTeamLogos';
 import RulesEncyclopedia from '../components/RulesEncyclopedia';
 
@@ -1229,6 +1230,11 @@ const DraftRoom = ({ initialTournamentData, onComplete, onBackToMenu }) => {
 
     try {
       await saveTournament(tournament.filename, updatedTournament);
+      
+      // Initialize real rosters in Supabase using the team names
+      const teamNames = updatedTeams.map(t => t.name);
+      await initializeRosters(tournament.filename, teamNames);
+
       onComplete(updatedTournament);
     } catch (err) {
       alert(err.message);

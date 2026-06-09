@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PlayerCard from '../components/PlayerCard';
 import sounds from '../utils/audio';
 import LogoEquipo from '../components/LogoEquipo';
+import TeamManagerPanel from '../components/TeamManagerPanel';
 import { useTeamLogos } from '../hooks/useTeamLogos';
 import { saveTournament, deleteTournament } from '../services/tournamentService';
 
@@ -1255,28 +1256,11 @@ const TournamentDashboard = ({ initialTournament, onBackToMenu }) => {
                   )}
                 </div>
 
-                <div className="lg:col-span-2 bg-panelBg border border-panelBorder p-6 rounded-2xl shadow-lg">
-                  <h3 className="text-sm font-extrabold tracking-wider font-mono text-gray-400 mb-4 uppercase">
-                    PLANTILLA DE JUGADORES ({selectedTeam.legends?.length || 0})
-                  </h3>
-
-                  {selectedTeam.legends && selectedTeam.legends.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-[500px] overflow-y-auto pr-1 justify-items-center">
-                      {selectedTeam.legends.map((p, idx) => (
-                        <PlayerCard
-                          key={idx}
-                          name={p.name}
-                          category={p.category}
-                          position={p.position}
-                          rating={p.rating}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-24 text-gray-500 font-mono text-xs">
-                      No hay jugadores asignados a la plantilla.
-                    </div>
-                  )}
+                <div className="lg:col-span-2">
+                  <TeamManagerPanel 
+                    tournamentId={tournament.filename} 
+                    selectedTeamObj={selectedTeam} 
+                  />
                 </div>
               </div>
             )}
